@@ -42,7 +42,7 @@ public class Algorithms {
 
         // Set initial `Factors`
         for (Variable v : network.getNodes())
-            factors.add(new Factor(v, evidence));
+            factors.add(new Factor("v", evidence));
 
 
 
