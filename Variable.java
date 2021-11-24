@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Variable {
+public class Variable implements Comparable<Variable>{
 
     private String name;
     private List<String> outcomes, parents, children;
@@ -20,20 +20,24 @@ public class Variable {
     }
 
     public List<String> getOutcomes() {
+        if (this.outcomes == null) return null;
         return new ArrayList<>(this.outcomes);
     }
 
     public List<String> getParents() {
+        if (this.parents == null) return null;
         return new ArrayList<>(this.parents);
     }
 
     public  List<String> getChildren() {
+        if (this.children == null) return null;
         return new ArrayList<>(this.children);
     }
 
 
 
     public HashMap<List<String>, Double> getCPT() {
+        if (this.CPT == null) return null;
         return copyCPT(this.CPT);
     }
 
@@ -82,5 +86,22 @@ public class Variable {
 //                ", children=" + children +
                 ", CPT=" + CPT +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Variable o) {
+
+        System.out.println("asciiSum("+this.getName()+"): " + asciiSum(this.getName()));
+        System.out.println("asciiSum("+o.getName()+"): " + asciiSum(o.getName()));
+
+
+        return asciiSum(this.getName()) - asciiSum(o.getName());
+    }
+
+    private int asciiSum(String s) {
+        int sum = 0;
+        for (char c : s.toCharArray())
+            sum += (int)c;
+        return sum;
     }
 }

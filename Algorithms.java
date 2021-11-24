@@ -10,11 +10,54 @@ public class Algorithms {
         this.network = network;
     }
 
+//    private String VariableElimination(){return "";}
+    /**
+     * Check Conditional independence between Vars:
+     * @param varEliminationQuery
+     * @return
+     */
+    public String VariableElimination(String varEliminationQuery) {
+
+        /*
+        1. Check Conditional independence between Vars:
+        2. Start "Factorizing" variables
+        3.
+         */
+
+
+        // Factorize Variables:
+
+//        String v_outcome = "";
+        String[] ev = varEliminationQuery.split("\\|");
+        String e = ev[1].split("\\)")[0];
+
+//        System.out.println(Arrays.toString(ev));
+
+        List<String> evidence = Arrays.asList(e.split(","));
+        System.out.println("Evidence parsed: " + evidence);
+
+        List<Factor> factors = new ArrayList<>();
+
+        List<String> parent_variables_given;
+
+        // Set initial `Factors`
+        for (Variable v : network.getNodes())
+            factors.add(new Factor(v, evidence));
+
+
+
+
+
+
+        return "Answer (double)";
+    }
+
+
+
     /**
      * So far this is correct. Need to implement some t
      */
-    private HashMap<String, String> _visited;
-    private HashMap<String, String> _prev;
+    private HashMap<String, String> _visited = new HashMap<>();
     public String BayesBall(String bayesBallQuery) {
         // A-B|E1=e1,E2=e2,...,Ek=ek    =>  Are A and B conditionally independent given Ei=ei ?
 
@@ -29,46 +72,55 @@ public class Algorithms {
             // Temp evidence
             e = Arrays.asList(vars_evidence[1].split(","));
             evidence = new ArrayList<>();
-            for (int i = 0; i < e.size(); i++) {
-                if (network.getNodes().contains(network.getNode(e.get(i).split("=")[0])))
-                    evidence.add(e.get(i).split("=")[0]);
+            for (String s : e) {
+                if (network.getNodes().contains(network.getNode(s.split("=")[0])))
+                    evidence.add(s.split("=")[0]);
             }
         }
 
         String start = vars[0],
                target = vars[1];
+        Variable s = network.getNode(start);
+        if (null == s) return "no, " + start + " is not a variable";
+        Variable p, c;
 
-        Collection<Variable> parents = network.getParents(start);
-        Collection<Variable> children = network.getChildren(start);
-        if (children.contains(null)) {
+        Collection<String> parents = s.getParents();
+        Collection<String> children = s.getChildren();
+        if (null == parents || children.isEmpty()) {
             System.out.println("No Children for Var " + start);
             children = new ArrayList<>();
+        } else if (null == children || parents.isEmpty()) {
+            System.out.println("Var "+start+" has no parents");
+            parents = new ArrayList<>();
         }
-
-        _visited = new HashMap<>();
-        _prev = new HashMap<>();
 
         for (Variable v : network.getNodes())
             _visited.put(v.getName(), "WHITE"); // All nodes are white as default. When processed they become BLACK.
 
-        for (Variable parent : parents){ // Execute DFS from each parent
+        for (String parent : parents){ // Execute DFS from each parent
+            p = network.getNode(parent);
+//            System.out.println("DFS From: " + parent);
             if (isTargetReachable(
-                    network.getNode(parent.getName()), // Source
+                    network.getNode(p.getName()),      // Source
                     network.getNode(target),           // Target
                     network.getNode(start),            // Previous node
                     evidence))
                 return targetFoundText(
                         start, target, evidence);
+//            System.out.println(parent + " did not find " + target);
         }
 
-        for (Variable child : children) {
+        for (String child : children) {
+            c = network.getNode(child);
+//            System.out.println("DFS From: " + child);
             if (isTargetReachable(
-                    network.getNode(child.getName()), // Source
+                    network.getNode(c.getName()),     // Source
                     network.getNode(target),          // Target
                     network.getNode(start),           // Previous node
                     evidence))
                 return targetFoundText(
                         start, target, evidence);
+//            System.out.println(child + " did not find " + target);
         }
 
         return targetNotFoundText(start, target, evidence);
@@ -78,53 +130,66 @@ public class Algorithms {
         if (null == src || null == target || null == prev || null == evidence) return false;
         if(_visited.get(src.getName()).equals("BLACK")) return false;
 
-
+//        System.out.println("\t" + src.getName() + " is looking for " + target.getName());
+//        System.out.println("\t" + src.getName() + " came from " + prev.getName());
         if (evidence.contains(src.getName())) {
+//            System.out.println("\t\t" + src.getName() + " is Evidence!");
         // Observed Node (Evidence node)
         // Can only move to parents, if came from a parent
-            if (src.getParents().contains(_prev.get(src.getName()))) {
+            if (src.getParents().contains(prev.getName())) {
 
+//                System.out.println("\t\t" + src.getName() + " came from parent");
+//                System.out.println("\t\t" + src.getName() + " looking to move up");
                 for (String parent : src.getParents()) {
+                    System.out.println("\t\t\t- " + parent + ":");
                     if (target.getName().equals(parent)) return true;
                     if (_visited.get(parent).equals("BLACK"))
-                        System.out.println("Var " + parent + " is BLACK (Processed)");
+//                        System.out.println("Var " + parent + " is BLACK (Processed)");
 
 //                    _prev.put(parent, src.getName());
+//                    System.out.println("\t\t\ttry from: " + parent + "...");
                     if (isTargetReachable(network.getNode(parent), target, src, evidence))
                         return true;
 //                    _prev.put(src.getName(), parent); // set prev[src] = parent
                 }
             }
         }
-        else { // Not observed. Can move to any child, or, from child to parent.
+        else { // Not observed(Not Evidence). Can move to any child, or, from child to parent.
+//            System.out.println("\t\t" + src.getName() + " is NOT Evidence");
+
+//            System.out.println("\t\t" + src.getName() + " came from parent");
+            for (String child : src.getChildren()) {
+//                System.out.println("\t\t\t" + src.getName() + " looking for children");
+                if (target.getName().equals(child)) return true;
+                if (_visited.get(child).equals("BLACK"))
+                    System.out.println("Var " + child + " is BLACK (Processed)");
+
+//                    _prev.put(child, src.getName());
+//                System.out.println("\t\t\ttry from " + child + "...");
+                if (isTargetReachable(network.getNode(child), target, src, evidence))
+                    return true;
+//                    _prev.put(src.getName(), child); // set prev[src] = parent
+            }
 
             if (src.getChildren().contains(prev.getName())) { // if prev[src] in children(src)
                 // Coming from child => can move to any parent
+//                System.out.println("\t\t" + src.getName() + " came from child");
                 for (String parent : src.getParents()) {
+//                    System.out.println("\t\t\t" + src.getName() + " looking for parents...");
                     if (target.getName().equals(parent)) return true;
                     if (_visited.get(parent).equals("BLACK"))
                         System.out.println("Var " + parent + " is BLACK (Processed)");
 
 //                    _prev.put(parent, src.getName());
+//                    System.out.println("\t\t\ttry from " + parent + "...");
                     if (isTargetReachable(network.getNode(parent), target, src, evidence))
                         return true;
 //                    _prev.put(src.getName(), parent); // set prev[src] = parent
                 }
             }
-            else { // Can move to any child
-                for (String child : src.getChildren()) {
-                    if (target.getName().equals(child)) return true;
-                    if (_visited.get(child).equals("BLACK"))
-                        System.out.println("Var " + child + " is BLACK (Processed)");
 
-//                    _prev.put(child, src.getName());
-                    if (isTargetReachable(network.getNode(child), target, src, evidence))
-                        return true;
-//                    _prev.put(src.getName(), child); // set prev[src] = parent
-                }
-            }
         }
-        _visited.put(src.getName(), "BLACK"); // Mark as processed
+//        _visited.put(src.getName(), "BLACK"); // Mark as processed
 
 
         return false;
@@ -153,32 +218,6 @@ public class Algorithms {
             out += evd;
         }
         return out;
-    }
-
-    /**
-     * Check Conditional independence between Vars:
-     * @param var
-     * @param outcome
-     * @param evidence
-     * @param vars_to_eliminate
-     * @return
-     */
-    public String VariableElimination(String var, String outcome, List<String> evidence, List<String> vars_to_eliminate) {
-
-        /*
-        1. Check Conditional independence between Vars:
-        2. Start "Factorizing" variables
-        3.
-         */
-
-        // Factorize Variables:
-
-        List<Factor> factors = new ArrayList<>();
-
-
-
-
-        return null;
     }
 }
 

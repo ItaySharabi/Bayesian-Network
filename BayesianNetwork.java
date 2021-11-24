@@ -28,14 +28,17 @@ public class BayesianNetwork {
         for (Variable var : nodes.values()) {
 
             String v_name = var.getName();
+            Variable v = nodes.get(v_name);
             inEdges.put(v_name, new ArrayList<>());
             outEdges.put(v_name, new ArrayList<>());
 
-            for (Variable parent : getParents(v_name))
-                inEdges.get(v_name).add(parent);
+            for (String parent : v.getParents())
+                inEdges.get(v_name).add(
+                        nodes.get(parent));
 
-            for (Variable child : getChildren(v_name))
-                outEdges.get(v_name).add(child);
+            for (String child : v.getChildren())
+                outEdges.get(v_name).add(
+                        nodes.get(child));
         }
         return true;
     }
@@ -46,20 +49,23 @@ public class BayesianNetwork {
     }
 
     public Variable getNode(String name) {
+        if (!nodes.containsKey(name)) return null;
         return this.nodes.get(name);
     }
-    public List<Variable> getParents(String name) {
-        List<Variable> parents = new ArrayList<>();
-        for (String s : nodes.get(name).getParents())
-            parents.add(nodes.get(s));
-        return parents;
-    }
-    public Collection<Variable> getChildren(String name) {
-        List<Variable> children = new ArrayList<>();
-        for (String s : nodes.get(name).getChildren())
-            children.add(nodes.get(s));
-        return children;
-    }
+//    public List<Variable> getParents(String name) {
+//        if (!nodes.containsKey(name)) return new ArrayList<>();
+//        List<Variable> parents = new ArrayList<>();
+//        for (String s : nodes.get(name).getParents())
+//            parents.add(nodes.get(s));
+//        return parents;
+//    }
+//    public Collection<Variable> getChildren(String name) {
+//        if (!nodes.containsKey(name)) return new ArrayList<>();
+//        List<Variable> children = new ArrayList<>();
+//        for (String s : nodes.get(name).getChildren())
+//            children.add(nodes.get(s));
+//        return children;
+//    }
     public Set<Map.Entry<List<String>, Double>> getCPT(String name) {
         return this.nodes.get(name).getCPT().entrySet();
     }

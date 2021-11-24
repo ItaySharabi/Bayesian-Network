@@ -11,7 +11,7 @@ public class Ex1 {
         // I've decided to let another class handle this job, XMLParser.
         Input in = null;
         try {
-            in = new Input("C:\\Users\\User\\IdeaProjects\\BayesianNetworkAlgorithms\\src\\input.txt");
+            in = new Input("data/input.txt");
             bn.loadNetworkFromXML(new XMLParser(), in.getXMLFilePath());
 
 
@@ -21,11 +21,15 @@ public class Ex1 {
             Algorithms algo = new Algorithms(bn);
             String start = "J";
             String target = "B";
-            String evidence = "A,C";
+            String evidence = "";
             String bayesBallQuery = start + "-" + target + "|" + evidence;
+            String varEliminationQuery = start + "=T|" + target + "=T" + evidence;
 
             System.out.println(
                     algo.BayesBall(bayesBallQuery));
+
+            System.out.println(
+                    algo.VariableElimination("P(B=T|J=T,M=T)"));
 
 
         } catch (Exception e) {
