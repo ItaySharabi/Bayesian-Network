@@ -234,12 +234,7 @@ public class Factor {
                 if (entry2.getKey().containsAll(intersectingVarsOutcomes)) {
                     // found corresponding rows
                     // TODO: change entry2 for the name of the row
-//                    joint_entries = entry1.getKey().stream()
-//                                            .filter(x -> x.split("=").length == 1)
-//                                            .collect(Collectors.toList());
-//                    joint_entries.addAll(entry2.getKey().stream()
-//                            .filter(x -> !varsToJoinOver.contains(x.split("=")[0]))
-//                            .collect(Collectors.toList()));
+
                     joint_entries = new ArrayList<>(entry1.getKey().stream()
                             .filter(x -> varsToJoinOver.contains(x.split("=")[0]))
                             .collect(Collectors.toList())); // all intersecting variables

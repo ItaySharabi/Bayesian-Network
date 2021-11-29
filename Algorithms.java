@@ -168,9 +168,20 @@ public class Algorithms {
         HashSet<Factor> factors = new HashSet<>();
 
         // initialize factor of v with a list of all variables and their given outcomes.
+        List<String> relevantVars = new ArrayList<>();
+        relevantVars.add(v.split("=")[0]);
+        for (String ev : evidence)
+                relevantVars.add(ev);
+        for (String h : hiddenVariables)
+            if (!isAncestor(h, relevantVars))
+                relevantVars.add(h);
 
-        for (Variable V : network.getNodes())
-            factors.add(new Factor(V, givenValues));
+
+
+        for (String V : relevantVars)
+            factors.add(new Factor(
+                    network.getNode(V.split("=")[0]),
+                    givenValues));
 
 
         // initialize a priority queue with a given priority over elimination order
@@ -183,6 +194,32 @@ public class Algorithms {
         System.out.println("============================");
 
         return "-1";
+    }
+
+    /**
+     * This method answers the question:
+     * is `v` an ancestor of any of the variables in `vars`.
+     * @param v
+     * @param vars
+     * @return
+     */
+    private boolean isAncestor(String v, List<String> vars) {
+
+        for (String u : vars) {
+            if (network.getNode(u.split("=")[0]).getParents()
+                                .contains(v)) {
+                System.out.println(v + " is an ancestor of " + u);
+                return true;
+            }
+
+        }
+        for (String u : vars) {
+            for (String child : network.getNode(u.split("=")[0]).getChildren()) {
+                return isAncestor(child, vars);
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -229,7 +266,8 @@ public class Algorithms {
         double sum = 0;
 
         for (Map.Entry<List<String>, Double> entry : f.getRows().entrySet()) {
-            /* Need to check if no other variables get in this factor`s KeySet */
+            /* Need to check if no other variables get in this factor`s KeySet
+            * -> They are.... Or not??*/
             sum += entry.getValue();
         }
         System.out.println("sum: " + sum);
