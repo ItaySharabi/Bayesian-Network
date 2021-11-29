@@ -77,6 +77,11 @@ public class Factor {
     private Factor(){this.rows = new HashMap<>(); this.name = new ArrayList<>();}
     public Factor(Variable v, List<String> givenOutcomes) {
 
+        List<String> givenVariablesNames = new ArrayList<>();
+        for (String ev : givenOutcomes)
+            givenVariablesNames.add(ev.split("=")[0]);
+
+
 //        System.out.println("Factorizing " + v.getName());
         List<String> relevantVariabls = null;
         List<String> v_parents = v.getParents();
@@ -94,27 +99,53 @@ public class Factor {
             // which contains outcomes that are not in `givenOutcomes`
             relevantVariabls = new ArrayList<>();
             for (String s : givenOutcomes) {
-                relevantVarName = s.split("=")[0]; // "E=e".split("=")
+                relevantVarName = s.split("=")[0]; // "X=x".split("=")
                 if (v.getName().equals(relevantVarName))
                     relevantVariabls.add(s);
                 if (v.getParents().contains(relevantVarName))
                     relevantVariabls.add(s);
+
+//                System.out.println("Find columns to remove");
+//                List<String> redundantVariables = new ArrayList<>();
+//                String s1, s2;
+//                for (String key : cptRow)
+//                    s1 = key.split("=")[0];
+//                    s2 = givenOutcomes.split("=")[0];
+//
+//                    redundantVariables.add(key.split("=")[0]);
+
+//                cptRow = cptRow.stream()
+//                        .filter(x -> redundantVariables.contains(x.split("=")[0]))
+//                        .collect(Collectors.toList());
+
             } // collect relevant variable parents from givenOutcomes
 
             count = 0;
             for (String rv : relevantVariabls) {
 
-                if (cptRow.contains(rv)) // if a given variable is shown in row
+                if (cptRow.contains(rv)) { // if a given variable is shown in row
                     count++;
+                }
             }
+
             rv_size = relevantVariabls.size();
 
             if (count != rv_size) {
                 // remove row, it does not contain all given values that should be contained.
                 this.rows.remove(cptRow);
 //                System.out.println("Not all variables are in row: " + cptRow + "\nDiscard row.... ^");
+            } else { // if row was not removed
+                for (int i = 0; i < cptRow.size(); ++i) {
+                    if (givenVariablesNames.contains(
+                            cptRow.get(i).split("=")[0]) &&
+                    !cptRow.get(i).split("=")[0].equals(v.getName()))
+                        cptRow.remove(cptRow.get(i));
+                }
             }
+
         }
+
+
 
 
         // Name this factor with all variables associated with it.
@@ -222,10 +253,22 @@ public class Factor {
 
 
         List<String> varsToJoinOver = findVarsToJoinOver(f1, f2); // Intersection of f1.names and f2.names
-        System.out.println("***Join Factors (Over "+varsToJoinOver+")***");
 
-        System.out.println("\t" + f1.getName());
-        System.out.println("\t" + f2.getName());
+        if (varsToJoinOver.isEmpty()) {
+
+            System.out.println("NO VARS TO JOIN OVER!!!!!!!!!!!!!!!!!!!");
+
+            varsToJoinOver.addAll(f1.name.stream()
+            .filter(x -> x.split("=").length == 1)
+            .collect(Collectors.toList()));
+            varsToJoinOver.addAll(f2.name.stream()
+                    .filter(x -> x.split("=").length == 1)
+                    .collect(Collectors.toList()));
+        }
+        System.out.println("***Join Factors (Over "+varsToJoinOver+")***");
+        System.out.println("\t" + f1.getRows());
+        System.out.println();
+        System.out.println("\t" + f2.getRows());
         List<String> joint_entries;
         List<String> intersectingVarsOutcomes = null;
 //        String prob;
@@ -248,6 +291,7 @@ public class Factor {
                             .filter(x -> f1.name.contains(x.split("=")[0]) &&
                                     !varsToJoinOver.contains(x.split("=")[0]))
                             .collect(Collectors.toList()));
+
                     joint_entries.addAll(entry2.getKey().stream() // get all non-intersecting variables
                             .filter(x -> f2.name.contains(x.split("=")[0]) &&
                                     !varsToJoinOver.contains(x.split("=")[0]))
@@ -262,16 +306,7 @@ public class Factor {
 
         if (null == intersectingVarsOutcomes) {System.out.println("No intersecting variables!!!");}
 
-//        join_result.name.addAll(intersectingVarsOutcomes.stream()
-//                                    .filter(v -> v.split("=").length == 1)
-//                                    .collect(Collectors.toList()));
-//        for (String varName : varsToJoinOver) {
-//            System.out.println(varName);
-//            if (varName.split("=").length == 1) {
-//
-//                join_result.name.add(varName);
-//            }
-//        }
+
         join_result.name.addAll(varsToJoinOver.stream()
         .filter(x -> x.split("=").length == 1)
         .collect(Collectors.toList()));
@@ -285,35 +320,13 @@ public class Factor {
                 .filter(x -> !join_result.name.contains(x) &&
                         x.split("=").length == 1)
                 .collect(Collectors.toList()));
+        join_result.numCols = join_result.name.size();
+        join_result.numRows = join_result.getRows().keySet().size();
 
-//        join_result.name.addAll()
-//        System.out.println("Name of join_result: " + join_result.name);
-
-//        System.out.println(join_result);
-
-//        System.out.println("New table: " + cpt);
-
-//        System.out.println();
-
+        System.out.println("Join Result: " + join_result);
         return join_result;
     }
 
-    private static List<String> createEntryKey(List<String> entry1,
-                                               List<String> entry2,
-                                               List<String> intersectingVariables) {
-        List<String> ans = new ArrayList<>(entry1.stream()
-                .filter(x -> intersectingVariables.contains(x.split("=")[0]))
-                .collect(Collectors.toList())); // all intersecting variables
-
-        ans.addAll(entry1.stream() // get all non-intersecting variables
-                .filter(x -> !intersectingVariables.contains(x.split("=")[0]))
-                .collect(Collectors.toList()));
-        ans.addAll(entry2.stream() // get all non-intersecting variables
-                .filter(x -> !intersectingVariables.contains(x.split("=")[0]))
-                .collect(Collectors.toList()));
-
-        return ans;
-    }
 
     /**
      * This function returns the variables and outcomes

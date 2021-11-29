@@ -162,7 +162,6 @@ public class Algorithms {
 
         //        givenValues.add(v); // According to presentation slides of VE. calculate P(Q)
         List<String> givenValues = new ArrayList<>(evidence);
-        BigDecimal bd;
 
         // Initialize factors using evidence:
         HashSet<Factor> factors = new HashSet<>();
@@ -172,6 +171,7 @@ public class Algorithms {
         List<String> hidden_variables_cleared = new ArrayList<>();
         relevantVars.add(v.split("=")[0]); // Choose to discard `v`s outcome, calculate over all values.
         for (String ev : evidence)
+            if (!network.getNode(ev.split("=")[0]).getParents().isEmpty())
                 relevantVars.add(ev);
         for (String h : hiddenVariables)
             if (isAncestor(h, relevantVars))
@@ -191,7 +191,7 @@ public class Algorithms {
 
         // initialize a priority queue with a given priority over elimination order
 
-        return EliminationProcedure(factors, relevantVars);
+        return EliminationProcedure(factors, hidden_variables_cleared);
 //        Factor query_result_factor =;
 //        for (Map.Entry<List<String>, Double> entry : query_result_factor.getRows().entrySet())
 //            if (entry.getKey().contains(v))
@@ -235,8 +235,6 @@ public class Algorithms {
     private String EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
 
         System.out.println("----Elimination----");
-//        System.out.println("Factors: " + factors);
-//        System.out.println("Z: " + Z);
 
         for (String var : vars_to_be_eliminated) {
             factors = Eliminate(network.getNode(var.split("=")[0])
