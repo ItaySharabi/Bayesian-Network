@@ -159,12 +159,14 @@ public class Factor {
         System.out.println("Summing " + v_name + " Out!");
 
         /* THIS IF SHOULD BE RECHECKED*/
-        for (List<String> key : f.getRows().keySet())
-            if (key.size() <=1) {
+        for (List<String> key : f.getRows().keySet()) {
+            if (key.size() <= 1) {
                 // ...
-                System.out.println("Factor("+v_name+").name.key.size <=1\n\tRETURNING....");
+                System.out.println("Factor(" + v_name + ").name.key.size <=1\n\tRETURNING....");
                 return f;
             }
+            break;
+        }
 
 
         Factor sum_result_factor = new Factor();
@@ -198,6 +200,8 @@ public class Factor {
 
         for (String k : key)
             sum_result_factor.name.add(k.split("=")[0]);
+        sum_result_factor.numCols = sum_result_factor.getName().size();
+        sum_result_factor.numRows = sum_result_factor.getRows().keySet().size();
 
         System.out.println("sum_result_factor: " + sum_result_factor);
         return sum_result_factor;

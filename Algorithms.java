@@ -169,31 +169,36 @@ public class Algorithms {
 
         // initialize factor of v with a list of all variables and their given outcomes.
         List<String> relevantVars = new ArrayList<>();
-        relevantVars.add(v.split("=")[0]);
+        List<String> hidden_variables_cleared = new ArrayList<>();
+        relevantVars.add(v.split("=")[0]); // Choose to discard `v`s outcome, calculate over all values.
         for (String ev : evidence)
                 relevantVars.add(ev);
         for (String h : hiddenVariables)
-            if (!isAncestor(h, relevantVars))
-                relevantVars.add(h);
+            if (isAncestor(h, relevantVars))
+                hidden_variables_cleared.add(h);
+        for (String h_c : hidden_variables_cleared)
+            relevantVars.add(h_c);
+        System.out.println("Relevant vars: " + relevantVars);
 
 
-
+        // Set initial factors
         for (String V : relevantVars)
             factors.add(new Factor(
                     network.getNode(V.split("=")[0]),
                     givenValues));
 
+        System.out.println("Initial factors: " + factors);
 
         // initialize a priority queue with a given priority over elimination order
 
-        EliminationProcedure(factors, hiddenVariables);
+        return EliminationProcedure(factors, relevantVars);
 //        Factor query_result_factor =;
 //        for (Map.Entry<List<String>, Double> entry : query_result_factor.getRows().entrySet())
 //            if (entry.getKey().contains(v))
 //                return "" + entry.getValue();
-        System.out.println("============================");
+//        System.out.println("============================");
 
-        return "-1";
+//        return "-1";
     }
 
     /**
@@ -205,6 +210,7 @@ public class Algorithms {
      */
     private boolean isAncestor(String v, List<String> vars) {
 
+        System.out.println("Vars: " + vars);
         for (String u : vars) {
             if (network.getNode(u.split("=")[0]).getParents()
                                 .contains(v)) {
@@ -213,12 +219,10 @@ public class Algorithms {
             }
 
         }
-        for (String u : vars) {
-            for (String child : network.getNode(u.split("=")[0]).getChildren()) {
-                return isAncestor(child, vars);
-            }
+        for (String child : network.getNode(v.split("=")[0]).getChildren()) {
+            return isAncestor(child, vars);
         }
-
+        System.out.println(v + " is not ancestor of " + vars);
         return false;
     }
 
@@ -235,7 +239,7 @@ public class Algorithms {
 //        System.out.println("Z: " + Z);
 
         for (String var : vars_to_be_eliminated) {
-            factors = Eliminate(network.getNode(var)
+            factors = Eliminate(network.getNode(var.split("=")[0])
                                 , factors);
         }
         System.out.println("Factors after elimination: " + factors);
@@ -303,10 +307,9 @@ public class Algorithms {
             result_factor_set.remove(f2);
         }
 
-        result_factor_set.add(Factor.sumOutFactor(var_to_eliminate.getName(),
-                                factors_of_var.get(0)));
-
-
+        if (factors_of_var.size() > 0)
+            result_factor_set.add(Factor.sumOutFactor(var_to_eliminate.getName(),
+                    factors_of_var.get(0)));
 
         return result_factor_set;
 //        return factors_after_elimination;
