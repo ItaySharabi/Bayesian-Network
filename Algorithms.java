@@ -1,22 +1,127 @@
+import java.math.BigDecimal;
 import java.util.*;
 
 public class Algorithms {
 
-    private /*static*/ BayesianNetwork network;
+//    private class BayesNetQuery {
+//
+//        private BayesNetQuery(){}
+//        public BayesNetQuery(String query) {
+//            String[] q_ev_hidden = query
+//                    .split("\\|");
+//            List<String> evidence = Arrays.asList(q_ev_hidden[1]
+//                    .split("\\)")[0]);
+//            String[] v_name_outcome = q_ev_hidden[0]
+//                    .split("=");
+//            String v_name = v_name_outcome[0].
+//                    substring(2);
+//            String v_outcome = v_name_outcome[1];
+//            String var = v_name + "=" + v_outcome;
+//            List<String> hidden = Arrays.asList(q_ev_hidden[1]
+//                    .split(" ")[1]
+//                    .split("-"));
+//        }
+//    }
 
-    private Algorithms() {}
+    private static class SIZE_ASCII_Comparator implements Comparator<Factor>{
+
+        @Override
+        public int compare(Factor o1, Factor o2) {
+
+            int o1_table_size = o1.getNumRows() * o1.getNumCols(),
+                    o2_table_size = o2.getNumCols() * o2.getNumRows();
+
+            System.out.println("o1 table size: " + o1_table_size);
+            System.out.println("o2 table size: " + o2_table_size);
+            if (o1_table_size ==
+                    o2_table_size)
+                return compareByASCII(o1.getName(), o2.getName());
+
+            return o1_table_size - o2_table_size;
+        }
+
+        private int compareByASCII(List<String> f1, List<String> f2) {
+            int ascii_sum1 = 0,
+                    ascii_sum2 = 0;
+
+            for (String s : f1)
+                ascii_sum1 += sumASCII(s);
+            for (String s : f2)
+                ascii_sum2 += sumASCII(s);
+            return ascii_sum1 - ascii_sum2;
+        }
+
+        private int sumASCII(String s) {
+            int sum = 0;
+            for (char c : s.toCharArray())
+                sum += (int)c;
+            return sum;
+        }
+    }
+
+//    private class GIVEN_ORDER_Comparator implements Comparator<Factor> {
+//
+//        private List<String> order;
+//        private int current,
+//                next;
+//        private GIVEN_ORDER_Comparator(){
+//
+//
+//        }
+//        public GIVEN_ORDER_Comparator(List<String> order) {
+//            System.out.println("Comparator Constructor\n\tOrder: " + order);
+//            if (order == null) return;
+//            if (order.isEmpty()) return;
+//            int n = order.size();
+//            this.order = new ArrayList<>();
+//            for (int i = 0; i < n; i++)
+//                this.order.add(order.get(i));
+//            this.current = 0;
+//            this.next = 1;
+//        }
+//        @Override
+//        public int compare(Factor o1, Factor o2) {
+//            System.out.println("o1: " + o1.getName());
+//            System.out.println("o2: " + o2.getName());
+//            System.out.println("Index of o1: " + order.indexOf(o1.getName()));
+//            System.out.println("Index of o2: " + order.indexOf(o2.getName()));
+//            return order.indexOf(o1.getName()) -
+//                    order.indexOf(o2.getName());
+//        }
+//    }
+
+
+    private /*static*/ final BayesianNetwork network;
 
     public Algorithms(BayesianNetwork network) {
         this.network = network;
     }
 
-//    private String VariableElimination(){return "";}
+//    public String VariableElimination(String query){
+//
+//        System.out.println("----Variable Elimination----");
+//
+//        String var_name;
+//        Variable v;
+//        List<String> evidence, hidden_vars;
+//        String[] query_evidence = query.split("\\|"); // "P(Q=q" | "E1=e1, ...) H1-H2-..."
+//
+//        var_name = query_evidence[0].substring(2); // var = "Q=q".split("=")[0];
+//        v = network.getNode(var_name.split("=")[0]); // get queried variable
+//        evidence = Arrays.asList(query_evidence[1].split())
+////        System.out.println(var_name); // prints "Q=q"
+//
+//        System.out.println("evidence: " + evidence);
+//
+//
+//        return "";
+//    }
     /**
      * Check Conditional independence between Vars:
      * @param varEliminationQuery
      * @return
      */
-    public String VariableElimination(String varEliminationQuery) {
+    public String VariableEliminationMarginal(String varEliminationQuery) {
 
         /*
         1. Check Conditional independence between Vars:
@@ -24,25 +129,91 @@ public class Algorithms {
         3.
          */
 
+        // process queried variables from query
+        // Set initial Factors using evidence
+        // apply an order
+        // while (len(hidden_variables)>0) {eliminate}
 
-        // Factorize Variables:
 
 //        String v_outcome = "";
-        String[] ev = varEliminationQuery.split("\\|");
-        String e = ev[1].split("\\)")[0];
+//        Variable V;
+        System.out.println("---- Variable Elimination ----");
+        System.out.println(varEliminationQuery);
+        String v;
+        List<String> evidence,
+                     hiddenVariables;
 
-//        System.out.println(Arrays.toString(ev));
+        String[] processed_query = null;
+        try {
+            processed_query = processVarEliminationQuery(varEliminationQuery);
+        } catch (Exception e) {
+            System.out.println("***Variable Elimination***\nCould not process query");
+            e.printStackTrace();
+        }
+        if (processed_query == null) return "-1";
+        v = processed_query[0];
+//        V = network.getNode(v.split("=")[0]);
+//        evidence = clearConditionallyIndependentEvidence(v,
+        evidence = Arrays.asList(processed_query[1].split(","));//));
+        hiddenVariables = Arrays.asList(processed_query[2].split("-"));
+//        hiddenVariables.add(v.split("=")[0]);
 
-        List<String> evidence = Arrays.asList(e.split(","));
-        System.out.println("Evidence parsed: " + evidence);
 
-        List<Factor> factors = new ArrayList<>();
 
-        List<String> parent_variables_given;
 
-        // Set initial `Factors`
-        for (Variable v : network.getNodes())
-            factors.add(new Factor("v", evidence));
+        System.out.println("V: " + v);
+        System.out.println("evidence: " + evidence);
+        System.out.println("hidden variables: " + hiddenVariables);
+        System.out.println("-----------------------------------------");
+
+        //        givenValues.add(v); // According to presentation slides of VE. calculate P(Q)
+        List<String> givenValues = new ArrayList<>(evidence);
+        BigDecimal bd;
+
+        // Initialize factors using evidence:
+        HashSet<Factor> factors = new HashSet<>();
+
+        // initialize factor of v with a list of all variables and their given outcomes.
+
+        for (Variable V : network.getNodes())
+            factors.add(new Factor(V, givenValues));
+
+
+        // initialize a priority queue with a given priority over elimination order
+//        PriorityQueue<Factor> pq = new PriorityQueue<>(
+//                new GIVEN_ORDER_Comparator(hiddenVariables));
+//        pq.addAll(factors);
+
+//        System.out.println(factors);
+        EliminationProcedure(factors, hiddenVariables);
+//        System.out.println(factors);
+        System.out.println("====Ordering on Factors====");
+
+
+        System.out.println("============================");
+
+
+
+
+
+
+        // Instantiate a PriorityQueue with a given priority:
+        boolean given_order_applied = true;
+
+        // while !pq.isEmpty()
+        // eliminate factors
+        // 1. join over all factors containing X into a new factor Y
+        // 2. sum out over Y
+        // 3.
+
+
+
+
+
+
+
+//        if ()
+
 
 
 
@@ -52,10 +223,133 @@ public class Algorithms {
         return "Answer (double)";
     }
 
+    /**
+     *
+     * @param factors - Set of all factors.
+     * @param vars_to_be_eliminated - An order in which factors will be eliminated.
+     *          Elimination order will be Z1, Z2, ..., Zk.
+     */
+    private void EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
+
+        System.out.println("----Elimination----");
+//        System.out.println("Factors: " + factors);
+//        System.out.println("Z: " + Z);
+
+        for (String var : vars_to_be_eliminated) {
+            factors = Eliminate(network.getNode(var)
+                                , factors);
+        }
+        System.out.println("Factors after elimination: " + factors);
+
+        System.out.println("----Elimination----");
+    }
+
+    private Set<Factor> Eliminate(Variable var_to_eliminate, Set<Factor> factors) {
+        // How to Eliminate A?
+        // - join all factors that A is a part of them.
+        // - sum out over all values of A
+        HashSet<Factor> result_factor_set = new HashSet<>(factors);
+        System.out.println("\tEliminating " + var_to_eliminate.getName());
+        List<Factor> factors_of_var = new ArrayList<>();
+
+        for (Factor f : factors) { // find factors such that `f` is in their scope (name)
+            if (f.getName().contains(var_to_eliminate.getName())) {
+                factors_of_var.add(f);
+            }
+        }
+
+        System.out.println("Factors of " + var_to_eliminate.getName() + ": " + factors_of_var);
+        Factor f1, f2, join_result_factor;
+        while (factors_of_var.size() > 1) { // while there are factors left
+            factors_of_var.sort(new SIZE_ASCII_Comparator());
+            f1 = factors_of_var.remove(0); // remove both factors
+            f2 = factors_of_var.remove(0); // and join them into one
+            join_result_factor = Factor.joinFactors(f1, f2); // keep the join result
+            factors_of_var.add(join_result_factor); // add it to keep the loop
+            result_factor_set.remove(f1); // remove from the resulting factor set
+            result_factor_set.remove(f2);
+        }
+
+        result_factor_set.add(Factor.sumOut(var_to_eliminate.getName(),
+                                factors_of_var.get(0)));
+
+
+//        PriorityQueue<Factor> pq = new PriorityQueue<>(
+//                new SIZE_ASCII_Comparator());
+
+//        Factor.joinFactors(f1, f2);
+
+
+//        PriorityQueue<Factor> pq = new PriorityQueue<>(new SIZE_ASCII_Comparator());
+//        pq.addAll(factors_of_var);
+//        Factor f1, f2, join_result_factor;
+//        System.out.println("PQ: " + pq);
+//        while (pq.size()>1) {
+//            f1 = pq.poll();
+//            f2 = pq.poll();
+//            join_result_factor = Factor.joinFactors(f1, f2);
+//            pq.add(join_result_factor);
+//        }
+
+//        System.out.println("PQ: " + pq);
+
+//        for (int i = 0; i < factors_of_var.size()-1; i++) {
+//            factors_of_var.sort(new SIZE_ASCII_Comparator()); // sorted by table size - then ascii
+//            f1 = factors_of_var.remove(i);
+//            f2 = factors_of_var.remove(i+1);
+//            join_result_factor = Factor.joinFactors(f1, f2);
+//            factors_of_var.add(join_result_factor);
+//        }
+
+
+//        factors_after_elimination.add(join_result);
+
+//        System.out.println("Factors containing " + var_to_eliminate);
+//        System.out.println(factors_of_var);
+//        System.out.println("------------------------------------");
+
+
+        return result_factor_set;
+//        return factors_after_elimination;
+    }
+
+    // returns an array of size 3:
+    // ["Q=q", "E1=e1,...,Ek=ek", H1-H2-...-Hl]
+    private String[] processVarEliminationQuery(String query) throws Exception{
+
+
+
+        String[] q__ev_hidden = query // => ["Q=q", "E1=e1,...,) H1-H2..."]
+                .split("\\|");
+        String evidence = q__ev_hidden[1]
+                .split("\\)")[0];
+        String[] v_name_outcome = q__ev_hidden[0]
+                .split("=");
+        String v_name = v_name_outcome[0].
+                substring(2);
+        String v_outcome = v_name_outcome[1];
+        String var = v_name + "=" + v_outcome;
+//        if (q__ev_hidden.length == 1) throw new IllegalFormatException("")
+        String hiddenVariables = q__ev_hidden[1]
+                .split(" ")[1];
+
+        if (null == network.getNode(v_name))
+            throw new NoSuchElementException("No variable name `" + v_name + "` in the network");
+        if (evidence.length()>0) {
+            for (String ev_out : Arrays.asList(evidence.split(","))) {
+                String s = ev_out.split("=")[0];
+                if (null == network.getNode(s))
+                    throw new NoSuchElementException("No variable name `" + s + "` in the network");
+            }
+        }
+
+        return new String[]{var, evidence, hiddenVariables};
+    }
+
 
 
     /**
-     * So far this is correct. Need to implement some t
+     * So far this is correct. Need to implement some tests
      */
     private HashMap<String, String> _visited = new HashMap<>();
     public String BayesBall(String bayesBallQuery) {
@@ -81,7 +375,7 @@ public class Algorithms {
         String start = vars[0],
                target = vars[1];
         Variable s = network.getNode(start);
-        if (null == s) return "no, " + start + " is not a variable";
+        if (null == s) return start + " is not a variable (BayesBall)";
         Variable p, c;
 
         Collection<String> parents = s.getParents();
@@ -99,6 +393,10 @@ public class Algorithms {
 
         for (String parent : parents){ // Execute DFS from each parent
             p = network.getNode(parent);
+            if (target.equals(parent)) {
+//                System.out.println(parent + " ==? " + target);
+                return targetFoundText(start, target, evidence);
+            }
 //            System.out.println("DFS From: " + parent);
             if (isTargetReachable(
                     network.getNode(p.getName()),      // Source
@@ -111,6 +409,10 @@ public class Algorithms {
         }
 
         for (String child : children) {
+            if (target.equals(child)) {
+//                System.out.println(child + " ==? " + target);
+                return targetFoundText(start, target, evidence);
+            }
             c = network.getNode(child);
 //            System.out.println("DFS From: " + child);
             if (isTargetReachable(
@@ -123,7 +425,8 @@ public class Algorithms {
 //            System.out.println(child + " did not find " + target);
         }
 
-        return targetNotFoundText(start, target, evidence);
+//        return targetNotFoundText(start, target, evidence);
+        return "yes";
     }
 
     private boolean isTargetReachable(Variable src, Variable target,Variable prev, List<String> evidence) {

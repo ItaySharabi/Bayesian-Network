@@ -171,7 +171,7 @@ public class XMLParser implements bn_xml_parser {
         }
 
         while (pi < parents.size()) { // Iterating over `parents` list (Reversed)
-            parent = vars.get(parents.get(pi));
+            parent = vars.get(parents.get(pi)); // apply next
 
             for (int i = 0; i < n;) { // Iterate over `rows` of the CPT
                 p_outcome = (p_outcome + 1) % parent.getOutcomes().size();
@@ -183,8 +183,9 @@ public class XMLParser implements bn_xml_parser {
 
                 i += leap;
             }
-            leap *= parent.getOutcomes().size();
-            pi++;
+            leap *= parent.getOutcomes().size(); // for next parent we multiply the leap param with the support size
+            // of the parent
+            pi++; // next parent
         }
         // Create the Map object representing Variable `v` CPT.
         CPT = new HashMap<>();

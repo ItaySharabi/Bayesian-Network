@@ -19,17 +19,17 @@ public class Ex1 {
 //                System.out.println(entry.getKey() + " |-> " + entry.getValue());
 
             Algorithms algo = new Algorithms(bn);
-            String start = "J";
-            String target = "B";
-            String evidence = "";
+            String start = "B";
+            String target = "E";
+            String evidence = "A";
             String bayesBallQuery = start + "-" + target + "|" + evidence;
             String varEliminationQuery = start + "=T|" + target + "=T" + evidence;
 
             System.out.println(
-                    algo.BayesBall(bayesBallQuery));
+                    algo.BayesBall("A-B|"));
 
             System.out.println(
-                    algo.VariableElimination("P(B=T|J=T,M=T)"));
+                    algo.VariableEliminationMarginal("P(B=T|J=T,M=T) A-E"));
 
 
         } catch (Exception e) {

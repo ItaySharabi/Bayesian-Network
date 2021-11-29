@@ -65,6 +65,12 @@ public class Variable implements Comparable<Variable>{
     public void setCPT(HashMap<List<String>, Double> CPT) {
         if (null != this.CPT || null == CPT) return; // Do not allow changes in data
         this.CPT = copyCPT(CPT);
+        Iterator<List<String>> it = this.CPT.keySet().iterator();
+        List<String> parents_reorganized = it.next();
+        parents = new ArrayList<>();
+        for (String s : parents_reorganized) // remove `=s` from `S=s`
+            parents.add(s.split("=")[0]);
+        parents.remove(parents.indexOf(name)); // remove self.name from the list
     }
 
     private HashMap<List<String>, Double> copyCPT(HashMap<List<String>, Double> map) {
@@ -84,7 +90,7 @@ public class Variable implements Comparable<Variable>{
                 ", outcomes=" + outcomes +
 //                ", parents=" + parents +
 //                ", children=" + children +
-                ", CPT=" + CPT +
+//                ", CPT=" + CPT +
                 '}';
     }
 

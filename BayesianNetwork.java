@@ -49,23 +49,10 @@ public class BayesianNetwork {
     }
 
     public Variable getNode(String name) {
-        if (!nodes.containsKey(name)) return null;
+        if (!nodes.containsKey(name)) {System.out.println(name + " does not exist in the network!"); return null;}
         return this.nodes.get(name);
     }
-//    public List<Variable> getParents(String name) {
-//        if (!nodes.containsKey(name)) return new ArrayList<>();
-//        List<Variable> parents = new ArrayList<>();
-//        for (String s : nodes.get(name).getParents())
-//            parents.add(nodes.get(s));
-//        return parents;
-//    }
-//    public Collection<Variable> getChildren(String name) {
-//        if (!nodes.containsKey(name)) return new ArrayList<>();
-//        List<Variable> children = new ArrayList<>();
-//        for (String s : nodes.get(name).getChildren())
-//            children.add(nodes.get(s));
-//        return children;
-//    }
+
     public Set<Map.Entry<List<String>, Double>> getCPT(String name) {
         return this.nodes.get(name).getCPT().entrySet();
     }
@@ -82,3 +69,17 @@ public class BayesianNetwork {
         return false;
     }
 }
+//    public List<Variable> getParents(String name) {
+//        if (!nodes.containsKey(name)) return new ArrayList<>();
+//        List<Variable> parents = new ArrayList<>();
+//        for (String s : nodes.get(name).getParents())
+//            parents.add(nodes.get(s));
+//        return parents;
+//    }
+//    public Collection<Variable> getChildren(String name) {
+//        if (!nodes.containsKey(name)) return new ArrayList<>();
+//        List<Variable> children = new ArrayList<>();
+//        for (String s : nodes.get(name).getChildren())
+//            children.add(nodes.get(s));
+//        return children;
+//    }
