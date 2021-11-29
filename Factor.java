@@ -83,7 +83,7 @@ public class Factor {
 
 
 //        System.out.println("Factorizing " + v.getName());
-        List<String> relevantVariabls = null;
+        List<String> relevantVariables = null;
         List<String> v_parents = v.getParents();
         String relevantVarName;
         int rv_size;
@@ -97,13 +97,13 @@ public class Factor {
         for (List<String> cptRow : rows) {
             // iterate over rows and find rows to remove
             // which contains outcomes that are not in `givenOutcomes`
-            relevantVariabls = new ArrayList<>();
+            relevantVariables = new ArrayList<>();
             for (String s : givenOutcomes) {
                 relevantVarName = s.split("=")[0]; // "X=x".split("=")
                 if (v.getName().equals(relevantVarName))
-                    relevantVariabls.add(s);
+                    relevantVariables.add(s);
                 if (v.getParents().contains(relevantVarName))
-                    relevantVariabls.add(s);
+                    relevantVariables.add(s);
 
 //                System.out.println("Find columns to remove");
 //                List<String> redundantVariables = new ArrayList<>();
@@ -121,28 +121,25 @@ public class Factor {
             } // collect relevant variable parents from givenOutcomes
 
             count = 0;
-            for (String rv : relevantVariabls) {
+            for (String rv : relevantVariables) {
 
                 if (cptRow.contains(rv)) { // if a given variable is shown in row
                     count++;
                 }
             }
 
-            rv_size = relevantVariabls.size();
+            rv_size = relevantVariables.size();
 
             if (count != rv_size) {
                 // remove row, it does not contain all given values that should be contained.
                 this.rows.remove(cptRow);
 //                System.out.println("Not all variables are in row: " + cptRow + "\nDiscard row.... ^");
-            } else { // if row was not removed
-                for (int i = 0; i < cptRow.size(); ++i) {
-                    if (givenVariablesNames.contains(
-                            cptRow.get(i).split("=")[0]) &&
-                    !cptRow.get(i).split("=")[0].equals(v.getName()))
-                        cptRow.remove(cptRow.get(i));
+            }
+            for (int i = 0; i < cptRow.size(); ++i) {
+                if (givenVariablesNames.contains(cptRow.get(i).split("=")[0])) {
+                    cptRow.remove(i--);
                 }
             }
-
         }
 
 
@@ -189,20 +186,7 @@ public class Factor {
 
         System.out.println("Summing " + v_name + " Out!");
 
-        /* THIS IF SHOULD BE RECHECKED*/
-        for (List<String> key : f.getRows().keySet()) {
-            if (key.size() <= 1) {
-                // ...
-                System.out.println("Factor(" + v_name + ").name.key.size <=1\n\tRETURNING....");
-                return f;
-            }
-            break;
-        }
-
-
         Factor sum_result_factor = new Factor();
-
-//        List<String> allExceptV = null;
 
         List<String> key = null;
         double p1, p2;
@@ -211,12 +195,10 @@ public class Factor {
                     .filter(x -> !x.split("=")[0].equals(v_name.split("=")[0]))
                     .collect(Collectors.toList());
 
-//            key = entry.getKey();
             if (sum_result_factor.rows.get(key) != null) {
 
                 p1 = sum_result_factor.rows.get(key);
                 p2 = entry.getValue();
-//                System.out.println("entry: " + entry);
                 sum_result_factor.rows.put(key,
                         Double.parseDouble(String.format( "%.6f",/* %.5f is not good enough. it rounds numbers up*/
                         p1 + p2)));
@@ -224,7 +206,6 @@ public class Factor {
                 sum_result_factor.rows.put(key,
                         Double.parseDouble(String.format( "%.6f",
                                 entry.getValue())));
-//                System.out.println("entry: " + entry);
 
             }
         }
@@ -238,20 +219,55 @@ public class Factor {
         return sum_result_factor;
     }
 
-    public static Factor normalizeFactor(String v_name, Factor f) {
+    public static Factor normalizeFactor(Factor f, String v_name) {
 
-        Factor summed_fuctor = sumOutFactor(v_name, f);
+//        Factor summed_factor = sumOutFactor(v_name, f);
 
-//        for (Map.Entry<List<String>>)
-        return f;
+        System.out.println("Normalizing " + v_name + " Out!");
+
+        Factor normalized_factor = new Factor();
+
+//        List<String> allExceptV = null;
+
+        List<String> key = null;
+        double p1, p2;
+        for (Map.Entry<List<String>, Double> entry : f.rows.entrySet()) {
+            key = entry.getKey().stream() // all variables except for `v_name`
+                    .filter(x -> x.split("=")[0].equals(v_name.split("=")[0]))
+                    .collect(Collectors.toList());
+
+//            key = entry.getKey();
+            if (normalized_factor.rows.get(key) != null) {
+
+                p1 = normalized_factor.rows.get(key);
+                p2 = entry.getValue();
+//                System.out.println("entry: " + entry);
+                normalized_factor.rows.put(key,
+                        Double.parseDouble(String.format( "%.6f",/* %.5f is not good enough. it rounds numbers up*/
+                                p1 + p2)));
+            } else {
+                normalized_factor.rows.put(key,
+                        Double.parseDouble(String.format( "%.6f",
+                                entry.getValue())));
+//                System.out.println("entry: " + entry);
+
+            }
+        }
+
+        for (String k : key)
+            normalized_factor.name.add(k.split("=")[0]);
+        normalized_factor.numCols = normalized_factor.getName().size();
+        normalized_factor.numRows = normalized_factor.getRows().keySet().size();
+
+        System.out.println("normalized_result_factor: " + normalized_factor);
+        return normalized_factor;
+
+//        return f;
     }
     public static Factor joinFactors(Factor f1, Factor f2) {
 
         Factor join_result = new Factor();
 //        HashMap<List<String>, Double> cpt = new HashMap<>();
-
-
-
         List<String> varsToJoinOver = findVarsToJoinOver(f1, f2); // Intersection of f1.names and f2.names
 
         if (varsToJoinOver.isEmpty()) {

@@ -191,14 +191,18 @@ public class Algorithms {
 
         // initialize a priority queue with a given priority over elimination order
 
-        return EliminationProcedure(factors, hidden_variables_cleared);
+        Factor result = EliminationProcedure(factors, hidden_variables_cleared);
+        System.out.println("V: " + v);
+        result = Factor.normalizeFactor(result, v.split("=")[0]);
+
+        System.out.println("Result (Normalized) factor: " + result);
 //        Factor query_result_factor =;
 //        for (Map.Entry<List<String>, Double> entry : query_result_factor.getRows().entrySet())
 //            if (entry.getKey().contains(v))
 //                return "" + entry.getValue();
 //        System.out.println("============================");
 
-//        return "-1";
+        return "-1";
     }
 
     /**
@@ -232,7 +236,7 @@ public class Algorithms {
      * @param vars_to_be_eliminated - An order in which factors will be eliminated.
      *          Elimination order will be Z1, Z2, ..., Zk.
      */
-    private String EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
+    private Factor EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
 
         System.out.println("----Elimination----");
 
@@ -254,14 +258,14 @@ public class Algorithms {
             result = factors_left_to_compute.get(0); // only one factor left
         }
 
-        result = normalize(result);
-        System.out.println("Result after normalizing: " + result);
-
-        for (Map.Entry<List<String>, Double> entry : result.getRows().entrySet())
-            if (entry.getKey().contains(result.getName().get(0))) // assuming only one name left in entry!
-                return "" + entry.getValue();
-        System.out.println("----Elimination Procedure----");
-        return "-1 (EliminationProcedure)";
+        return result;
+//        System.out.println("Result after normalizing: " + result);
+//
+//        for (Map.Entry<List<String>, Double> entry : result.getRows().entrySet())
+//            if (entry.getKey().contains(result.getName().get(0))) // assuming only one name left in entry!
+//                return "" + entry.getValue();
+//        System.out.println("----Elimination Procedure----");
+//        return "-1 (EliminationProcedure)";
     }
 
     private Factor normalize(Factor f) {
@@ -269,9 +273,10 @@ public class Algorithms {
 
         for (Map.Entry<List<String>, Double> entry : f.getRows().entrySet()) {
             /* Need to check if no other variables get in this factor`s KeySet
-            * -> They are.... Or not??*/
+            * -> They are.... Or not?? */
             sum += entry.getValue();
         }
+
         System.out.println("sum: " + sum);
         for (Map.Entry<List<String>, Double> entry : f.getRows().entrySet()) {
             f.getRows().put(entry.getKey(), entry.getValue()/sum);

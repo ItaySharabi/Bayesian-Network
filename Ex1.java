@@ -11,7 +11,7 @@ public class Ex1 {
         // I've decided to let another class handle this job, XMLParser.
         Input in = null;
         try {
-            in = new Input("data/input.txt");
+            in = new Input("data/input2.txt");
             bn.loadNetworkFromXML(new XMLParser(), in.getXMLFilePath());
 
 
@@ -29,7 +29,8 @@ public class Ex1 {
                     algo.BayesBall("A-B|"));
 
             System.out.println(
-                    algo.VariableEliminationMarginal("P(B=T|J=T,M=T) A-E"));
+                    algo.VariableEliminationMarginal("" +
+                            "P(D1=T|C2=v1,C3=F) A2-C1-B0-A1-B1-A3-B2-B3"));
 
 
         } catch (Exception e) {
