@@ -154,14 +154,24 @@ public class Factor {
         return numRows;
     }
 
-    public static Factor sumOut(String v_name, Factor f){
+    public static Factor sumOutFactor(String v_name, Factor f){
 
         System.out.println("Summing " + v_name + " Out!");
+
+        /* THIS IF SHOULD BE RECHECKED*/
+        for (List<String> key : f.getRows().keySet())
+            if (key.size() <=1) {
+                // ...
+                System.out.println("Factor("+v_name+").name.key.size <=1\n\tRETURNING....");
+                return f;
+            }
+
+
         Factor sum_result_factor = new Factor();
 
-        List<String> allExceptV;
+//        List<String> allExceptV = null;
 
-        List<String> key;
+        List<String> key = null;
         double p1, p2;
         for (Map.Entry<List<String>, Double> entry : f.rows.entrySet()) {
             key = entry.getKey().stream() // all variables except for `v_name`
@@ -173,23 +183,33 @@ public class Factor {
 
                 p1 = sum_result_factor.rows.get(key);
                 p2 = entry.getValue();
-                System.out.println("entry: " + entry);
+//                System.out.println("entry: " + entry);
                 sum_result_factor.rows.put(key,
                         Double.parseDouble(String.format( "%.6f",/* %.5f is not good enough. it rounds numbers up*/
                         p1 + p2)));
             } else {
                 sum_result_factor.rows.put(key,
-                        Double.parseDouble(String.format( "%.5f",
+                        Double.parseDouble(String.format( "%.6f",
                                 entry.getValue())));
-                System.out.println("entry: " + entry);
+//                System.out.println("entry: " + entry);
 
             }
         }
-        sum_result_factor.name.add("BJASND");
+
+        for (String k : key)
+            sum_result_factor.name.add(k.split("=")[0]);
+
         System.out.println("sum_result_factor: " + sum_result_factor);
         return sum_result_factor;
     }
 
+    public static Factor normalizeFactor(String v_name, Factor f) {
+
+        Factor summed_fuctor = sumOutFactor(v_name, f);
+
+//        for (Map.Entry<List<String>>)
+        return f;
+    }
     public static Factor joinFactors(Factor f1, Factor f2) {
 
         Factor join_result = new Factor();
@@ -200,8 +220,8 @@ public class Factor {
         List<String> varsToJoinOver = findVarsToJoinOver(f1, f2); // Intersection of f1.names and f2.names
         System.out.println("***Join Factors (Over "+varsToJoinOver+")***");
 
-        System.out.println("\t" + f1.getRows());
-        System.out.println("\t" + f2.getRows());
+        System.out.println("\t" + f1.getName());
+        System.out.println("\t" + f2.getName());
         List<String> joint_entries;
         List<String> intersectingVarsOutcomes = null;
 //        String prob;
@@ -235,7 +255,7 @@ public class Factor {
                             .collect(Collectors.toList()));
 
                     join_result.rows.put(joint_entries, // add row in the new factor
-                            Double.parseDouble(String.format( "%.5f",
+                            Double.parseDouble(String.format( "%.6f",
                                     entry1.getValue() * entry2.getValue())));
                 }
             }

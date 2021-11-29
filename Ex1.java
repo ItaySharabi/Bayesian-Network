@@ -29,7 +29,7 @@ public class Ex1 {
                     algo.BayesBall("A-B|"));
 
             System.out.println(
-                    algo.VariableEliminationMarginal("P(B=T|J=T,M=T) A-E"));
+                    algo.VariableEliminationMarginal("P(J=T|B=T) A-E-M"));
 
 
         } catch (Exception e) {

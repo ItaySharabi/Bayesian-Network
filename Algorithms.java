@@ -129,12 +129,6 @@ public class Algorithms {
         3.
          */
 
-        // process queried variables from query
-        // Set initial Factors using evidence
-        // apply an order
-        // while (len(hidden_variables)>0) {eliminate}
-
-
 //        String v_outcome = "";
 //        Variable V;
         System.out.println("---- Variable Elimination ----");
@@ -180,47 +174,15 @@ public class Algorithms {
 
 
         // initialize a priority queue with a given priority over elimination order
-//        PriorityQueue<Factor> pq = new PriorityQueue<>(
-//                new GIVEN_ORDER_Comparator(hiddenVariables));
-//        pq.addAll(factors);
 
-//        System.out.println(factors);
         EliminationProcedure(factors, hiddenVariables);
-//        System.out.println(factors);
-        System.out.println("====Ordering on Factors====");
-
-
+//        Factor query_result_factor =;
+//        for (Map.Entry<List<String>, Double> entry : query_result_factor.getRows().entrySet())
+//            if (entry.getKey().contains(v))
+//                return "" + entry.getValue();
         System.out.println("============================");
 
-
-
-
-
-
-        // Instantiate a PriorityQueue with a given priority:
-        boolean given_order_applied = true;
-
-        // while !pq.isEmpty()
-        // eliminate factors
-        // 1. join over all factors containing X into a new factor Y
-        // 2. sum out over Y
-        // 3.
-
-
-
-
-
-
-
-//        if ()
-
-
-
-
-
-
-
-        return "Answer (double)";
+        return "-1";
     }
 
     /**
@@ -229,7 +191,7 @@ public class Algorithms {
      * @param vars_to_be_eliminated - An order in which factors will be eliminated.
      *          Elimination order will be Z1, Z2, ..., Zk.
      */
-    private void EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
+    private String EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
 
         System.out.println("----Elimination----");
 //        System.out.println("Factors: " + factors);
@@ -241,7 +203,40 @@ public class Algorithms {
         }
         System.out.println("Factors after elimination: " + factors);
 
-        System.out.println("----Elimination----");
+        List<Factor> factors_left_to_compute = new ArrayList<>(factors);
+        Factor result = null;
+        if (factors_left_to_compute.size() > 1) {
+            for (int i = 0; i < factors_left_to_compute.size() - 1; ++i) {
+                factors_left_to_compute.sort(new SIZE_ASCII_Comparator());
+                result = Factor.joinFactors(factors_left_to_compute.remove(0),
+                        factors_left_to_compute.remove(0));
+            }
+        } else {
+            result = factors_left_to_compute.get(0); // only one factor left
+        }
+
+        result = normalize(result);
+        System.out.println("Result after normalizing: " + result);
+
+        for (Map.Entry<List<String>, Double> entry : result.getRows().entrySet())
+            if (entry.getKey().contains(result.getName().get(0))) // assuming only one name left in entry!
+                return "" + entry.getValue();
+        System.out.println("----Elimination Procedure----");
+        return "-1 (EliminationProcedure)";
+    }
+
+    private Factor normalize(Factor f) {
+        double sum = 0;
+
+        for (Map.Entry<List<String>, Double> entry : f.getRows().entrySet()) {
+            /* Need to check if no other variables get in this factor`s KeySet */
+            sum += entry.getValue();
+        }
+        System.out.println("sum: " + sum);
+        for (Map.Entry<List<String>, Double> entry : f.getRows().entrySet()) {
+            f.getRows().put(entry.getKey(), entry.getValue()/sum);
+        }
+        return f;
     }
 
     private Set<Factor> Eliminate(Variable var_to_eliminate, Set<Factor> factors) {
@@ -270,43 +265,9 @@ public class Algorithms {
             result_factor_set.remove(f2);
         }
 
-        result_factor_set.add(Factor.sumOut(var_to_eliminate.getName(),
+        result_factor_set.add(Factor.sumOutFactor(var_to_eliminate.getName(),
                                 factors_of_var.get(0)));
 
-
-//        PriorityQueue<Factor> pq = new PriorityQueue<>(
-//                new SIZE_ASCII_Comparator());
-
-//        Factor.joinFactors(f1, f2);
-
-
-//        PriorityQueue<Factor> pq = new PriorityQueue<>(new SIZE_ASCII_Comparator());
-//        pq.addAll(factors_of_var);
-//        Factor f1, f2, join_result_factor;
-//        System.out.println("PQ: " + pq);
-//        while (pq.size()>1) {
-//            f1 = pq.poll();
-//            f2 = pq.poll();
-//            join_result_factor = Factor.joinFactors(f1, f2);
-//            pq.add(join_result_factor);
-//        }
-
-//        System.out.println("PQ: " + pq);
-
-//        for (int i = 0; i < factors_of_var.size()-1; i++) {
-//            factors_of_var.sort(new SIZE_ASCII_Comparator()); // sorted by table size - then ascii
-//            f1 = factors_of_var.remove(i);
-//            f2 = factors_of_var.remove(i+1);
-//            join_result_factor = Factor.joinFactors(f1, f2);
-//            factors_of_var.add(join_result_factor);
-//        }
-
-
-//        factors_after_elimination.add(join_result);
-
-//        System.out.println("Factors containing " + var_to_eliminate);
-//        System.out.println(factors_of_var);
-//        System.out.println("------------------------------------");
 
 
         return result_factor_set;
