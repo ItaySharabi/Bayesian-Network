@@ -1,18 +1,24 @@
 import java.math.BigDecimal;
 import java.util.*;
 
-public class Algorithms {
+public class Algorithms implements operations_count_observer {
+
+    @Override
+    public void updateSumOperations(int operations) {
+        this.sumOperations += operations;
+    }
+    @Override
+    public void updateMultiplicationOperations(int operations) {
+        this.multOperations += operations;
+    }
 
     private static class SIZE_ASCII_Comparator implements Comparator<Factor> {
 
         @Override
         public int compare(Factor o1, Factor o2) {
 
-            int o1_table_size = o1.getNumRows() * o1.getNumCols(),
-                    o2_table_size = o2.getNumCols() * o2.getNumRows();
-
-            System.out.println("o1 table size: " + o1_table_size);
-            System.out.println("o2 table size: " + o2_table_size);
+            int o1_table_size = o1.getTable().keySet().size() * o1.getName().size(),
+                    o2_table_size = o2.getTable().keySet().size() * o2.getName().size();
             if (o1_table_size ==
                     o2_table_size)
                 return compareByASCII(o1.getName(), o2.getName());
@@ -40,8 +46,11 @@ public class Algorithms {
     }
 
     private final BayesianNetwork network;
+    private int sumOperations, multOperations;
 
     // Used to determine whether a node came from it`s parents or it`s children
+    // if direction == up:
+    // we got the node we're currently inspecting from below (from one of it`s children)
     private enum Direction {
         UP,
         DOWN
@@ -62,11 +71,10 @@ public class Algorithms {
      * @return - The probability P(X=x|Evidence)
      */
     public String VariableEliminationMarginal(String varEliminationQuery) {
-
-
-
-        System.out.println("---- Variable Elimination ----");
-        System.out.println(varEliminationQuery);
+//        System.out.println("---- Variable Elimination ----");
+//        System.out.println(varEliminationQuery);
+        sumOperations = 0;
+        multOperations = 0;
         String v;
         List<String> evidence,
                 hiddenVariables;
@@ -75,7 +83,7 @@ public class Algorithms {
         try {
             processed_query = processVarEliminationQuery(varEliminationQuery);
         } catch (Exception e) {
-            System.out.println("***Variable Elimination***\nCould not process query");
+//            System.out.println("***Variable Elimination***\nCould not process query");
             e.printStackTrace();
         }
         if (processed_query == null) return "-1";
@@ -110,18 +118,17 @@ public class Algorithms {
                 bayesBallQuery = bayesBallQuery.concat(e + ",");
             }
             bayesBallQuery = bayesBallQuery.substring(0, bayesBallQuery.length() - 1);
-//            System.out.println("Query: " + bayesBallQuery);
+
             if (isAncestor(h, relevantVars) &&
                     !BayesBall(bayesBallQuery).equals("yes")) {
                 hidden_variables_cleared.add(h);
-//                System.out.println("Adding " + h + " to query");
             }
         }
         relevantVars.addAll(hidden_variables_cleared);
 
-        System.out.println("Relevant query vars: " + relevantVars);
+//        System.out.println("Relevant query vars: " + relevantVars);
 
-        System.out.println("Do I have the query: " + v + "|" + evidence + " ?");
+//        System.out.println("Do I have the query: " + v + "|" + evidence + " ?");
         if (canAnswerImmediately(v, evidence)) {
             System.out.println("Can return in O(1)");
             return immediateAnswer(v, evidence);
@@ -132,7 +139,7 @@ public class Algorithms {
         for (String V : relevantVars) /* NOT ITERATING OVER ALL VARIABLES - Only filtered ones! */
             factors.add(new Factor(
                     network.getNode(V.split("=")[0]),
-                    givenValues));
+                    givenValues, this));
 
         // initialize a priority queue with a given priority over elimination order
 
@@ -142,7 +149,7 @@ public class Algorithms {
 
         for (Map.Entry<List<String>, BigDecimal> entry : query_result_factor.getTable().entrySet())
             if (entry.getKey().contains(v))
-                return String.format("%.5f", entry.getValue());
+                return String.format("%.5f", entry.getValue()) + "," + (sumOperations-1) + "," + multOperations;
 
         return "-1 (An error has occurred)";
     }
@@ -156,7 +163,7 @@ public class Algorithms {
         for (Map.Entry<List<String>, BigDecimal> entry : network.getNode(v.split("=")[0])
                 .getCPT().entrySet())
             if (entry.getKey().containsAll(key))
-                return String.format("%.5f", entry.getValue());
+                return String.format("%.5f", entry.getValue()) + "," + sumOperations + "," + multOperations;
         return "-1";
     }
 
@@ -172,10 +179,11 @@ public class Algorithms {
 
     private boolean isAncestor(String ancestorQ, List<String> vars) {
 
-        System.out.println("isAncestor(" + ancestorQ + ", " + vars + ")");
+//        System.out.println("isAncestor(" + ancestorQ + ", " + vars + ")");
+
         for (String v : vars) {
             if (network.getNode(v.split("=")[0]).getParents().contains(ancestorQ)) {
-                System.out.println(ancestorQ + " is in " + v + ".getParents()");
+//                System.out.println(ancestorQ + " is in " + v + ".getParents()");
                 return true;
             }
         }
@@ -189,12 +197,9 @@ public class Algorithms {
 //                System.out.println("vars: " + vars);
                 return true;
             }
-//            if (!network.getNode(v.split("=")[0]).getChildren().isEmpty())
-//                if (isAncestor(ancestorQ, network.getNode(v.split("=")[0]).getChildren()))
-//                    return true;
         }
 
-        System.out.println(ancestorQ + " is NOT an Ancestor of " + vars);
+//        System.out.println(ancestorQ + " is NOT an Ancestor of " + vars);
         return false;
     }
 
@@ -205,13 +210,12 @@ public class Algorithms {
      */
     private Factor EliminationProcedure(Set<Factor> factors, List<String> vars_to_be_eliminated) {
 
-        System.out.println("----Elimination----");
+//        System.out.println("----Elimination----");
 
-        for (String var : vars_to_be_eliminated) {
-            factors = Eliminate(network.getNode(var.split("=")[0])
+        for (String var : vars_to_be_eliminated)
+            factors =
+                    Eliminate(network.getNode(var.split("=")[0])
                     , factors);
-        }
-        System.out.println("Factors after elimination: " + factors);
 
         List<Factor> factors_left_to_compute = new ArrayList<>(factors);
         Factor result = null;
@@ -233,7 +237,6 @@ public class Algorithms {
         // - join all factors that A is a part of them.
         // - sum out over all values of A
         HashSet<Factor> result_factor_set = new HashSet<>(factors);
-        System.out.println("\tEliminating " + var_to_eliminate.getName());
         List<Factor> factors_of_var = new ArrayList<>();
 
         for (Factor f : factors) { // find factors such that `f` is in their scope (name)
@@ -242,7 +245,7 @@ public class Algorithms {
             }
         }
 
-        System.out.println("Factors of " + var_to_eliminate.getName() + ": " + factors_of_var);
+//        System.out.println("Factors of " + var_to_eliminate.getName() + ": " + factors_of_var);
         Factor f1, f2, join_result_factor;
         while (factors_of_var.size() > 1) { // while there are factors left
             factors_of_var.sort(new SIZE_ASCII_Comparator());
@@ -256,6 +259,7 @@ public class Algorithms {
 
         if (factors_of_var.size() == 1) {
             result_factor_set.remove(factors_of_var.get(0));
+
             result_factor_set.add(Factor.sumOutFactor(var_to_eliminate.getName(),
                     factors_of_var.get(0)));
         }
@@ -293,7 +297,6 @@ public class Algorithms {
                     throw new NoSuchElementException("No variable name `" + s + "` in the network");
             }
         }
-
         return new String[]{var, evidence, hiddenVariables};
     }
 
@@ -315,16 +318,16 @@ public class Algorithms {
      * @param bayesBallQuery
      * @return
      */
-    private HashMap<Variable, Boolean> fromChild;
-    private HashMap<Variable, Boolean> fromParent;
+    private HashMap<Variable, Boolean> cameFromChildList;
+    private HashMap<Variable, Boolean> cameFromParentList;
 
     public String BayesBall(String bayesBallQuery) {
-        fromChild = new HashMap<>(); // ?
-        fromParent = new HashMap<>(); // ?
+        cameFromChildList = new HashMap<>(); // ?
+        cameFromParentList = new HashMap<>(); // ?
 
         for (Variable v : network.getNodes()) {
-            fromChild.put(v, false);
-            fromParent.put(v, false);
+            cameFromChildList.put(v, false);
+            cameFromParentList.put(v, false);
         }
 
         String[] vars_evidence = bayesBallQuery.split("\\|");
@@ -346,13 +349,13 @@ public class Algorithms {
         Variable start = network.getNode(vars[0]),
                 target = network.getNode(vars[1]);
 
-        if (BouncingBall(start, target, null, evidence, Direction.UP))
+        if (BayesBallAlgorithm(start, target, null, evidence, Direction.UP))
             return "no";
 
         return "yes";
     }
 
-    public boolean BouncingBall(Variable src, Variable dest, Variable prev, HashSet<Variable> evidence, Direction direction) {
+    public boolean BayesBallAlgorithm(Variable src, Variable dest, Variable prev, HashSet<Variable> evidence, Direction direction) {
         // This means we reach our Goal there for the Variables are not Independent
         Variable parent, child;
 
@@ -369,8 +372,8 @@ public class Algorithms {
                     if (!cameFromChild(parent)) {
 //                        if (null != prev)
 //                            if (parent.getName().equals(prev.getName())) continue;
-                        fromChild.put(parent, true);
-                        if (BouncingBall(parent, dest, src, evidence, Direction.UP))
+                        cameFromChildList.put(parent, true);
+                        if (BayesBallAlgorithm(parent, dest, src, evidence, Direction.UP))
                             return true;
                     }
                 }
@@ -388,12 +391,12 @@ public class Algorithms {
                     if (!cameFromParent(child)) {
 //                        if (null != prev)
 //                            if (child.getName().equals(prev.getName())) continue;
-                        fromParent.put(child, true);
-                        if (BouncingBall(child, dest, src, evidence, Direction.DOWN))
+                        cameFromParentList.put(child, true);
+                        if (BayesBallAlgorithm(child, dest, src, evidence, Direction.DOWN))
                             return true;
                     }
                 }
-                fromChild.put(prev, true);
+                cameFromChildList.put(prev, true);
             } else {
                 // If node is in an upward direction
                 // Came from parent
@@ -403,8 +406,8 @@ public class Algorithms {
                     if (!cameFromChild(parent)) {
 //                        if (null != prev)
 //                            if (parent.getName().equals(prev.getName())) continue;
-                        fromChild.put(parent, true);
-                        if (BouncingBall(parent, dest, src, evidence, Direction.UP))
+                        cameFromChildList.put(parent, true);
+                        if (BayesBallAlgorithm(parent, dest, src, evidence, Direction.UP))
                             return true;
                     }
                 }
@@ -415,8 +418,8 @@ public class Algorithms {
                     if (!cameFromParent(child)) { // if child was not set as `came from parent` -> set it
 //                        if (prev != null)
 //                            if (child.getName().equals(prev.getName())) continue;
-                        fromParent.put(child, true);
-                        if (BouncingBall(child, dest, src, evidence, Direction.DOWN))
+                        cameFromParentList.put(child, true);
+                        if (BayesBallAlgorithm(child, dest, src, evidence, Direction.DOWN))
                             return true;
                     }
                 }
@@ -426,10 +429,10 @@ public class Algorithms {
     } // BouncingBall
 
     private boolean cameFromParent(Variable v) {
-        return fromParent.get(v);
+        return cameFromParentList.get(v);
     }
     private boolean cameFromChild(Variable v) {
-        return fromChild.get(v);
+        return cameFromChildList.get(v);
     }
 }
 

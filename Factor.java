@@ -8,12 +8,17 @@ import java.util.stream.Collectors;
 public class Factor {
     private List<String> name; // Factor name represents all variable names that are independent from the sum
     private HashMap<List<String>, BigDecimal> table;
-    private int numRows, numCols;
+    private static operations_count_observer observer;
 
+    private Factor(operations_count_observer ob){
+        this.table = new HashMap<>();
+        this.name = new ArrayList<>();
+        this.observer = ob;
+    }
 
-    private Factor(){this.table = new HashMap<>(); this.name = new ArrayList<>();}
+    public Factor(Variable v, List<String> givenOutcomes, operations_count_observer observer) {
 
-    public Factor(Variable v, List<String> givenOutcomes) {
+        this.observer = observer;
 
         List<String> givenVariablesNames = new ArrayList<>();
         for (String ev : givenOutcomes)
@@ -22,8 +27,6 @@ public class Factor {
         List<String> relevantVariables;
         List<String> v_parents = v.getParents();
         String relevantVarName;
-        int rv_size;
-        int count;
         this.table = v.getCPT();
         Set<List<String>> rows;
 
@@ -42,12 +45,11 @@ public class Factor {
                     relevantVariables.add(s);
             } // collect relevant variable parents from givenOutcomes
 
-            //
+
             if (cptRow.stream().anyMatch(x -> x.split("=")[0].equals(v.getName()))) {
                 if (!cptRow.containsAll(relevantVariables)) {
                     // remove row, it does not contain all given values that should be contained.
                         this.table.remove(cptRow);
-//                System.out.println("Not all variables are in row: " + cptRow + "\nDiscard row.... ^");
                 }
             }
             for (int i = 0; i < cptRow.size(); ++i) {
@@ -62,8 +64,6 @@ public class Factor {
         String X;
         name.add(v.getName());
         name.addAll(v.getParents());
-        numCols = name.size();
-        numRows = this.table.keySet().size();
         int p1, p2;
         for (String X_x : givenOutcomes) {
             X = X_x.split("=")[0];
@@ -87,7 +87,7 @@ public class Factor {
 
 //        System.out.println("Summing " + v_name + " Out!");
 
-        Factor sum_result_factor = new Factor();
+        Factor sum_result_factor = new Factor(observer);
 
         List<String> key = null;
         double p1, p2;
@@ -102,6 +102,7 @@ public class Factor {
                 p2 = entry.getValue().doubleValue();
                 sum_result_factor.table.put(key,
                         new BigDecimal(p1).add(new BigDecimal(p2)));
+                observer.updateSumOperations(1);
             } else {
                 sum_result_factor.table.put(key,
                         BigDecimal.valueOf(entry.getValue().doubleValue()));
@@ -110,8 +111,6 @@ public class Factor {
 
         for (String k : key)
             sum_result_factor.name.add(k.split("=")[0]);
-        sum_result_factor.numCols = sum_result_factor.getName().size();
-        sum_result_factor.numRows = sum_result_factor.getTable().keySet().size();
 
 //        System.out.println("sum_result_factor: " + sum_result_factor);
         return sum_result_factor;
@@ -119,11 +118,9 @@ public class Factor {
 
     public static Factor normalizeFactor(Factor f, String v_name) {
 
-        System.out.println("Normalizing " + v_name);
         Factor normalized_factor = f;
         for (String key : f.name) {
             if (!key.split("=")[0].equals(v_name)) {
-                System.out.println("key: " + key);
                 normalized_factor = sumOutFactor(key, f);
             }
         }
@@ -131,28 +128,25 @@ public class Factor {
 
         for (BigDecimal bd : normalized_factor.getTable().values()) {
             sum = sum.add(bd);
-//            System.out.println("Sum: " + sum);
+            observer.updateSumOperations(1);
         }
 
         for (Map.Entry<List<String>, BigDecimal> entry : normalized_factor.getTable().entrySet()) {
-//            normalized_factor.getTable().put(entry.getKey(),
-//                                    entry.getValue().precision());
             normalized_factor.getTable().put(entry.getKey(),
                     entry.getValue().divide(sum, 6, RoundingMode.FLOOR));
         }
-
         return normalized_factor;
     }
 
     public static Factor joinFactors(Factor f1, Factor f2) {
 
-        Factor join_result = new Factor();
+        Factor join_result = new Factor(observer);
 
         List<String> varsToJoinOver = findVarsToJoinOver(f1, f2); // Intersection of f1.names and f2.names
 
         if (varsToJoinOver.isEmpty()) {
 
-            System.out.println("NO VARS TO JOIN OVER!!!!!!!!!!!!!!!!!!!");
+//            System.out.println("NO VARS TO JOIN OVER!!!!!!!!!!!!!!!!!!!");
 
             varsToJoinOver.addAll(f1.name.stream()
             .filter(x -> x.split("=").length == 1)
@@ -168,7 +162,7 @@ public class Factor {
         for (Map.Entry<List<String>, BigDecimal> entry1 : f1.getTable().entrySet()) {
 
             intersectingVarsOutcomes = getIntersectingVarsAndOutcomes(entry1.getKey(), varsToJoinOver);
-            System.out.println("intersecting variables and outcomes: " + intersectingVarsOutcomes);
+//            System.out.println("intersecting variables and outcomes: " + intersectingVarsOutcomes);
             for (Map.Entry<List<String>, BigDecimal> entry2 : f2.getTable().entrySet()) {
 
                 if (entry2.getKey().containsAll(intersectingVarsOutcomes)) {
@@ -191,6 +185,7 @@ public class Factor {
                     join_result.table.put(joint_entries, // add row in the new factor
                             new BigDecimal(entry1.getValue().doubleValue() *
                                     entry2.getValue().doubleValue()));
+                    observer.updateMultiplicationOperations(1);
                 }
             }
         }
@@ -211,9 +206,6 @@ public class Factor {
                 .filter(x -> !join_result.name.contains(x) &&
                         x.split("=").length == 1)
                 .collect(Collectors.toList()));
-        join_result.numCols = join_result.name.size();
-        join_result.numRows = join_result.getTable().keySet().size();
-
 //        System.out.println("Join Result: " + join_result);
         return join_result;
     }
@@ -251,14 +243,6 @@ public class Factor {
         return this.name;
     }
 
-    public int getNumCols() {
-        return numCols;
-    }
-
-    public int getNumRows() {
-        return numRows;
-    }
-
     @Override
     public String toString() {
         String s = getName() + "\n";
@@ -266,4 +250,5 @@ public class Factor {
             s += entry.getKey() + "|-> " + String.format("%.5f", entry.getValue().doubleValue()) + "\n";
         return s;
     }
+
 }

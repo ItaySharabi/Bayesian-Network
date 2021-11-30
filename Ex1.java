@@ -16,7 +16,7 @@ public class Ex1 {
         // I've decided to let another class handle this job, XMLParser.
         Input in = null;
         try {
-            in = new Input("data/input.txt");
+            in = new Input("input.txt");
             bn.loadNetworkFromXML(new XMLParser(), in.getXMLFilePath());
 
             Algorithms algo = new Algorithms(bn);
