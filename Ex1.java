@@ -1,3 +1,8 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.util.Scanner;
+
 public class Ex1 {
 
     public static void main(String[] args) {
@@ -11,28 +16,27 @@ public class Ex1 {
         // I've decided to let another class handle this job, XMLParser.
         Input in = null;
         try {
-            in = new Input("data/input2.txt");
+            in = new Input("data/input.txt");
             bn.loadNetworkFromXML(new XMLParser(), in.getXMLFilePath());
 
-
-//            for (Map.Entry<List<String>, Double> entry : bn.getCPT("A"))
-//                System.out.println(entry.getKey() + " |-> " + entry.getValue());
-
             Algorithms algo = new Algorithms(bn);
-            String start = "B";
-            String target = "E";
-            String evidence = "A";
-            String bayesBallQuery = start + "-" + target + "|" + evidence;
-            String varEliminationQuery = start + "=T|" + target + "=T" + evidence;
 
-            System.out.println(
-                    algo.BayesBall("A-B|"));
+            String out = "";
 
-            System.out.println(
-                    algo.VariableEliminationMarginal("" +
-                            "P(D1=T|C2=v1,C3=F) A2-C1-B0-A1-B1-A3-B2-B3"));
+            for (String query : in.getQueries()) {
+                if (query.charAt(0) == 'P' &&
+                    query.charAt(1) == '(')
+//                     Variable Elimination Query:
+                    out += algo.VariableEliminationMarginal(query) + "\n";
+                else
+                    out += algo.BayesBall(query) + "\n";
+            }
 
+//            System.out.println(out);
 
+            FileWriter fw = new FileWriter(new File("output.txt"));
+            fw.write(out);
+            fw.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

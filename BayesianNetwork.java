@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.util.*;
 
 public class BayesianNetwork {
@@ -49,11 +50,12 @@ public class BayesianNetwork {
     }
 
     public Variable getNode(String name) {
+        name = name.split("=")[0];
         if (!nodes.containsKey(name)) {System.out.println(name + " does not exist in the network!"); return null;}
         return this.nodes.get(name);
     }
 
-    public Set<Map.Entry<List<String>, Double>> getCPT(String name) {
+    public Set<Map.Entry<List<String>, BigDecimal>> getCPT(String name) {
         return this.nodes.get(name).getCPT().entrySet();
     }
 

@@ -1,10 +1,11 @@
+import java.math.BigDecimal;
 import java.util.*;
 
 public class Variable implements Comparable<Variable>{
 
     private String name;
     private List<String> outcomes, parents, children;
-    private HashMap<List<String>, Double> CPT; // Conditional Probability Table
+    private HashMap<List<String>, BigDecimal> CPT; // Conditional Probability Table
 
     private Variable(){}
 
@@ -36,7 +37,7 @@ public class Variable implements Comparable<Variable>{
 
 
 
-    public HashMap<List<String>, Double> getCPT() {
+    public HashMap<List<String>, BigDecimal> getCPT() {
         if (this.CPT == null) return null;
         return copyCPT(this.CPT);
     }
@@ -62,7 +63,7 @@ public class Variable implements Comparable<Variable>{
      * @param CPT - A Map object, where keys are String lists and values are doubles, representing
      *            the corresponding probability value to the list of Strings.
      */
-    public void setCPT(HashMap<List<String>, Double> CPT) {
+    public void setCPT(HashMap<List<String>, BigDecimal> CPT) {
         if (null != this.CPT || null == CPT) return; // Do not allow changes in data
         this.CPT = copyCPT(CPT);
         Iterator<List<String>> it = this.CPT.keySet().iterator();
@@ -73,12 +74,15 @@ public class Variable implements Comparable<Variable>{
         parents.remove(parents.indexOf(name)); // remove self.name from the list
     }
 
-    private HashMap<List<String>, Double> copyCPT(HashMap<List<String>, Double> map) {
+    private HashMap<List<String>, BigDecimal> copyCPT(HashMap<List<String>, BigDecimal> map) {
 
-        HashMap<List<String>, Double> copy = new HashMap<>();
+        HashMap<List<String>, BigDecimal> copy = new HashMap<>();
 
-        for (Map.Entry<List<String>, Double> entry : map.entrySet())
-            copy.put(entry.getKey(), entry.getValue());
+        List<String> copiedKey;
+        for (List<String> key : map.keySet()) {
+            copiedKey = new ArrayList<>(key);
+            copy.put(copiedKey, map.get(key));
+        }
 
         return copy;
     }

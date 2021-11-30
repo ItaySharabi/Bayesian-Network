@@ -1,0 +1,2 @@
+my_net.xml
+P(C=T|B=T) A

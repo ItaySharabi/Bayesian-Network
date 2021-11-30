@@ -47,14 +47,12 @@ public class Input {
         sc.close();
     }
 
+    public Queue<String> getQueries() {
+        return this.queries;
+    }
+
     public String getXMLFilePath() {
         return this.xmlFilePath;
     }
 
-//    public Collection<Query> getBayesBallQueries();
-//    public Collection<Query> getVarEliminationQueries();
-
-    public Collection<bn_node> getNetworkVariables() {
-        return null;
-    }
 }

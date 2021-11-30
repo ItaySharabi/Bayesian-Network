@@ -7,6 +7,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class XMLParser implements bn_xml_parser {
@@ -101,12 +102,6 @@ public class XMLParser implements bn_xml_parser {
                 // TODO: 11/4/2021 : Check what to do about CPT values!
                 Element tableTag = (Element) ((Element) definitions.item(i)).getElementsByTagName("TABLE").item(0);
                 probabilities = tableTag.getTextContent().split(" ");
-//                probabilities = tableTag.getTextContent().split(" ");
-//                double[] probs_parsed = new double[probabilities.length];
-//                for (int j = 0; j < probabilities.length; j++)
-//                    probs_parsed[j] = Double.parseDouble(probabilities[j]);
-
-//                vars.get(name).probabilities = tableTag.getTextContent(); // Append probabilities
 
                 // TODO: 11/22/2021 Done!  Change name, add comments
                 createCPTSomehow(vars.get(name), probabilities);
@@ -134,7 +129,7 @@ public class XMLParser implements bn_xml_parser {
 //        List<String> v_outcomes = vars.get(v.getName()).getOutcomes();
         Collections.reverse(parents); // ?
 
-        HashMap<List<String>, Double> CPT;
+        HashMap<List<String>, BigDecimal> CPT;
         int
             n = probabilities.length,
             leap = v.getOutcomes().size(); // |Support(v)| [- 1 ??]
@@ -164,7 +159,8 @@ public class XMLParser implements bn_xml_parser {
                 key = new ArrayList<>();
                 key.add(v.getName() + "=" + outcome);
                 CPT.put(key,
-                        Double.parseDouble(probabilities[i++]));
+                        BigDecimal.valueOf(Double.parseDouble(probabilities[i++])));
+//                        Double.parseDouble(probabilities[i++]));
             }
             v.setCPT(CPT);
             return;
@@ -192,7 +188,8 @@ public class XMLParser implements bn_xml_parser {
 
         int i = 0;
         for (List<String> list : keys) // Append to Map:  <["A1=a1", ..., "Ek=ek"], p1>
-            CPT.put(list, Double.parseDouble(probabilities[i++]));
+            CPT.put(list,
+                    new BigDecimal(Double.parseDouble(probabilities[i++])));
 
         v.setCPT(CPT);
     }
