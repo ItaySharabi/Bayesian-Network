@@ -236,6 +236,7 @@ public class Algorithms implements operations_count_observer {
         // How to Eliminate A?
         // - join all factors that A is a part of them.
         // - sum out over all values of A
+
         HashSet<Factor> result_factor_set = new HashSet<>(factors);
         List<Factor> factors_of_var = new ArrayList<>();
 
@@ -251,9 +252,6 @@ public class Algorithms implements operations_count_observer {
             factors_of_var.sort(new SIZE_ASCII_Comparator());
             f1 = factors_of_var.remove(0); // remove both factors
             f2 = factors_of_var.remove(0); // and join them into one
-            System.out.println("Pick \n" + f1);
-            System.out.println(f2);
-            System.out.println("--------------------------------------");
             join_result_factor = Factor.joinFactors(f1, f2); // keep the join result
             factors_of_var.add(join_result_factor); // add it to keep the loop
             result_factor_set.remove(f1); // remove from the resulting factor set
@@ -318,15 +316,17 @@ public class Algorithms implements operations_count_observer {
 
     /**
      *
-     * @param bayesBallQuery
+     * @param bayesBallQuery - A qurey that can be processed by the algorithm
+     *                       Format: X-Y|E1=e1,E2=e2,...
      * @return
      */
     private HashMap<Variable, Boolean> cameFromChildList;
     private HashMap<Variable, Boolean> cameFromParentList;
 
     public String BayesBall(String bayesBallQuery) {
-        cameFromChildList = new HashMap<>(); // ?
-        cameFromParentList = new HashMap<>(); // ?
+        // Maps that indicate whether a variable came from a child, or from a parent.
+        cameFromChildList = new HashMap<>();
+        cameFromParentList = new HashMap<>();
 
         for (Variable v : network.getNodes()) {
             cameFromChildList.put(v, false);
@@ -358,78 +358,67 @@ public class Algorithms implements operations_count_observer {
         return "yes";
     }
 
-    public boolean BayesBallAlgorithm(Variable src, Variable dest, Variable prev, HashSet<Variable> evidence, Direction direction) {
-        // This means we reach our Goal there for the Variables are not Independent
+    public boolean BayesBallAlgorithm(Variable start, Variable target, Variable prev, HashSet<Variable> evidence, Direction direction) {
         Variable parent, child;
+        if (start.equals(target)) return true; // target was found
 
-        if (src.equals(dest)) {
-            return true;
-        }
-        // This means we have reached an evidence variable
-        if (evidence.contains(src)) {
+        if (evidence.contains(start)) {
             // Observed (Evidence) nodes can only go to parents, if they came from a parent.
             if (direction == Direction.DOWN) {
                 // change direction
-                for (String p : src.getParents()) {
+                for (String p : start.getParents()) {
                     parent = network.getNode(p);
-                    if (!cameFromChild(parent)) {
-//                        if (null != prev)
-//                            if (parent.getName().equals(prev.getName())) continue;
+                    if (!cameFromChild(parent)) { // if parent was not set as `came from child` -> set it
                         cameFromChildList.put(parent, true);
-                        if (BayesBallAlgorithm(parent, dest, src, evidence, Direction.UP))
+                        if (BayesBallAlgorithm(parent, target, start, evidence, Direction.UP))
                             return true;
                     }
                 }
             }
 
-        } else {
-            // Unobserved Nodes (Not in evidence)
+        } else { // Unobserved Nodes (Not in evidence)
             // Can go to any child, and to any parent if coming from a child.
-            if (direction == Direction.DOWN) {
-                // If came from parent
+            if (direction == Direction.DOWN) { // If came from parent
+
                 // Node is in downward direction
                 // try reaching any children
-                for (String c : src.getChildren()) {
+                for (String c : start.getChildren()) {
                     child = network.getNode(c);
-                    if (!cameFromParent(child)) {
-//                        if (null != prev)
-//                            if (child.getName().equals(prev.getName())) continue;
+                    if (!cameFromParent(child)) { // if child was not set as `came from parent` -> set it
                         cameFromParentList.put(child, true);
-                        if (BayesBallAlgorithm(child, dest, src, evidence, Direction.DOWN))
+                        if (BayesBallAlgorithm(child, target, start, evidence, Direction.DOWN))
                             return true;
                     }
                 }
                 cameFromChildList.put(prev, true);
-            } else {
-                // If node is in an upward direction
+
+            } else { // If node is in an upward direction
+
                 // Came from parent
                 // try visiting parents:
-                for (String p : src.getParents()) {
+                for (String p : start.getParents()) {
                     parent = network.getNode(p);
-                    if (!cameFromChild(parent)) {
-//                        if (null != prev)
-//                            if (parent.getName().equals(prev.getName())) continue;
+                    if (!cameFromChild(parent)) { // if parent was not set as `came from child` -> set it
                         cameFromChildList.put(parent, true);
-                        if (BayesBallAlgorithm(parent, dest, src, evidence, Direction.UP))
+                        if (BayesBallAlgorithm(parent, target, start, evidence, Direction.UP))
                             return true;
                     }
                 }
+
                 // Node is in an upward direction
                 // try reaching any children
-                for (String c : src.getChildren()) {
+                for (String c : start.getChildren()) {
                     child = network.getNode(c);
                     if (!cameFromParent(child)) { // if child was not set as `came from parent` -> set it
-//                        if (prev != null)
-//                            if (child.getName().equals(prev.getName())) continue;
                         cameFromParentList.put(child, true);
-                        if (BayesBallAlgorithm(child, dest, src, evidence, Direction.DOWN))
+                        if (BayesBallAlgorithm(child, target, start, evidence, Direction.DOWN))
                             return true;
                     }
                 }
             }
         }
         return false;
-    } // BouncingBall
+    } // BayesBall Algorithm
 
     private boolean cameFromParent(Variable v) {
         return cameFromParentList.get(v);
@@ -438,146 +427,3 @@ public class Algorithms implements operations_count_observer {
         return cameFromChildList.get(v);
     }
 }
-
-//    public String BayesBall(String bayesBallQuery) {
-//        // A-B|E1=e1,E2=e2,...,Ek=ek    =>  Are A and B conditionally independent given Ei=ei ?
-//
-//        String[] vars_evidence = bayesBallQuery.split("\\|");
-//        String[] vars = vars_evidence[0].split("-");
-//        List<String> evidence, e;
-//        if (vars_evidence.length <= 1) { // Evidence or vars are missing
-//            evidence = new ArrayList<>();
-//        }
-//        else { // Positive number of evidence
-//            // Temp evidence
-//            e = Arrays.asList(vars_evidence[1].split(","));
-//            evidence = new ArrayList<>();
-//            for (String s : e) {
-//                if (network.getNodes().contains(network.getNode(s.split("=")[0])))
-//                    evidence.add(s.split("=")[0]);
-//            }
-//        }
-//
-//        String start = vars[0],
-//                target = vars[1];
-//        Variable s = network.getNode(start);
-//        if (null == s) return start + " is not a variable (BayesBall)";
-//        Variable p, c;
-//
-//        Collection<String> parents = s.getParents();
-//        Collection<String> children = s.getChildren();
-//        if (children.isEmpty()) {
-////            System.out.println("No Children for Var " + start);
-//            children = new ArrayList<>();
-//        } else if (parents.isEmpty()) {
-////            System.out.println("Var "+start+" has no parents");
-//            parents = new ArrayList<>();
-//        }
-//
-//        for (Variable v : network.getNodes())
-//            _visited.put(v.getName(), "WHITE"); // All nodes are white as default. When processed they become BLACK.
-//
-//        for (String parent : parents){ // Execute DFS from each parent
-//            p = network.getNode(parent);
-//            if (target.equals(parent)) {
-////                System.out.println(parent + " ==? " + target);
-//                return "no";
-//            }
-////            System.out.println("DFS From: " + parent);
-//            if (isTargetReachable(
-//                    network.getNode(p.getName()),      // Source
-//                    network.getNode(target),           // Target
-//                    network.getNode(start),            // Previous node
-//                    evidence))
-//                return "no";
-////            System.out.println(parent + " did not find " + target);
-//        }
-//
-//        for (String child : children) {
-//            if (target.equals(child)) {
-////                System.out.println(child + " ==? " + target);
-//                return "no";
-//            }
-//            c = network.getNode(child);
-////            System.out.println("DFS From: " + child);
-//            if (isTargetReachable(
-//                    network.getNode(c.getName()),     // Source
-//                    network.getNode(target),          // Target
-//                    network.getNode(start),           // Previous node
-//                    evidence))
-//                return "no";
-////            System.out.println(child + " did not find " + target);
-//        }
-//
-////        return targetNotFoundText(start, target, evidence);
-//        return "yes";
-//    }
-
-//    private boolean isTargetReachable(Variable src, Variable target,Variable prev, List<String> evidence) {
-//        if (null == src || null == target || null == prev || null == evidence) return false;
-//        if(_visited.get(src.getName()).equals("BLACK")) return false;
-//
-////        System.out.println("\t" + src.getName() + " is looking for " + target.getName());
-////        System.out.println("\t" + src.getName() + " came from " + prev.getName());
-//        if (isObserved(src.getName(), evidence)) {
-////            System.out.println("\t\t" + src.getName() + " is Evidence!");
-//            // Observed Node (Evidence node)
-//            // Can only move to parents, if came from a parent
-//            if (src.getParents().contains(prev.getName())) {
-//
-////                System.out.println("\t\t" + src.getName() + " came from parent");
-////                System.out.println("\t\t" + src.getName() + " looking to move up");
-//                for (String parent : src.getParents()) {
-////                    System.out.println("\t\t\t- " + parent + ":");
-//                    if (target.getName().equals(parent)) return true;
-//                    if (_visited.get(parent).equals("BLACK"))
-////                        System.out.println("Var " + parent + " is BLACK (Processed)");
-//
-////                    _prev.put(parent, src.getName());
-////                    System.out.println("\t\t\ttry from: " + parent + "...");
-//                        if (isTargetReachable(network.getNode(parent), target, src, evidence))
-//                            return true;
-////                    _prev.put(src.getName(), parent); // set prev[src] = parent
-//                }
-//            }
-//        }
-//        else { // Not observed(Not Evidence). Can move to any child, or, from child to parent.
-////            System.out.println("\t\t" + src.getName() + " is NOT Evidence");
-//
-////            System.out.println("\t\t" + src.getName() + " came from parent");
-//            for (String child : src.getChildren()) {
-////                System.out.println("\t\t\t" + src.getName() + " looking for children");
-//                if (target.getName().equals(child)) return true;
-//                if (_visited.get(child).equals("BLACK"))
-//                    System.out.println("Var " + child + " is BLACK (Processed)");
-//
-////                    _prev.put(child, src.getName());
-////                System.out.println("\t\t\ttry from " + child + "...");
-//                if (isTargetReachable(network.getNode(child), target, src, evidence))
-//                    return true;
-////                    _prev.put(src.getName(), child); // set prev[src] = parent
-//            }
-//
-//            if (src.getChildren().contains(prev.getName())) { // if prev[src] in children(src)
-//                // Coming from child => can move to any parent
-////                System.out.println("\t\t" + src.getName() + " came from child");
-//                for (String parent : src.getParents()) {
-////                    System.out.println("\t\t\t" + src.getName() + " looking for parents...");
-//                    if (target.getName().equals(parent)) return true;
-//                    if (_visited.get(parent).equals("BLACK"))
-//                        System.out.println("Var " + parent + " is BLACK (Processed)");
-//
-////                    _prev.put(parent, src.getName());
-////                    System.out.println("\t\t\ttry from " + parent + "...");
-//                    if (isTargetReachable(network.getNode(parent), target, src, evidence))
-//                        return true;
-////                    _prev.put(src.getName(), parent); // set prev[src] = parent
-//                }
-//            }
-//
-//        }
-////        _visited.put(src.getName(), "BLACK"); // Mark as processed
-//
-//
-//        return false;
-//    }
