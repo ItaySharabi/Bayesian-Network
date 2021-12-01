@@ -64,23 +64,23 @@ public class Factor {
         String X;
         name.add(v.getName());
         name.addAll(v.getParents());
-        int p1, p2;
-        for (String X_x : givenOutcomes) {
-            X = X_x.split("=")[0];
-
-            /* TODO: Maybe name list should contain the outcomes of given variables...
-            *   ...................................................................... */
-            if (v.getName().equals(X)) {
-                name.remove(v.getName());
-                name.add(X_x);
-            }
-            p1 = v_parents.indexOf(X);
-            p2 = name.indexOf(X);
-            if (p1 != -1){
-                name.remove(p2);
-                name.add(X_x);
-            }
-        }
+//        int p1, p2;
+//        for (String X_x : givenOutcomes) {
+//            X = X_x.split("=")[0];
+//
+//            /* TODO: Maybe name list should contain the outcomes of given variables...
+//            *   ...................................................................... */
+//            if (v.getName().equals(X)) {
+//                name.remove(v.getName());
+//                name.add(X_x);
+//            }
+//            p1 = v_parents.indexOf(X);
+//            p2 = name.indexOf(X);
+//            if (p1 != -1){
+//                name.remove(p2);
+//                name.add(X_x);
+//            }
+//        }
     } // Constructor
 
     public static Factor sumOutFactor(String v_name, Factor f){
@@ -90,18 +90,17 @@ public class Factor {
         Factor sum_result_factor = new Factor(observer);
 
         List<String> key = null;
-        double p1, p2;
+        double p;
         for (Map.Entry<List<String>, BigDecimal> entry : f.table.entrySet()) {
             key = entry.getKey().stream() // all variables except for `v_name`
-                    .filter(x -> !x.split("=")[0].equals(v_name.split("=")[0]))
+                    .filter(x -> !x.split("=")[0].equals(v_name))
                     .collect(Collectors.toList());
 
             if (sum_result_factor.table.get(key) != null) {
 
-                p1 = sum_result_factor.table.get(key).doubleValue();
-                p2 = entry.getValue().doubleValue();
+                p = sum_result_factor.table.get(key).doubleValue();
                 sum_result_factor.table.put(key,
-                        new BigDecimal(p1).add(new BigDecimal(p2)));
+                        entry.getValue().add(new BigDecimal(p)));
                 observer.updateSumOperations(1);
             } else {
                 sum_result_factor.table.put(key,
@@ -112,7 +111,7 @@ public class Factor {
         for (String k : key)
             sum_result_factor.name.add(k.split("=")[0]);
 
-//        System.out.println("sum_result_factor: " + sum_result_factor);
+        System.out.println("sum_result_factor: " + sum_result_factor);
         return sum_result_factor;
     }
 
@@ -135,6 +134,7 @@ public class Factor {
             normalized_factor.getTable().put(entry.getKey(),
                     entry.getValue().divide(sum, 6, RoundingMode.FLOOR));
         }
+        System.out.println("Normalized: " + normalized_factor);
         return normalized_factor;
     }
 
@@ -183,8 +183,7 @@ public class Factor {
                             .collect(Collectors.toList()));
 
                     join_result.table.put(joint_entries, // add row in the new factor
-                            new BigDecimal(entry1.getValue().doubleValue() *
-                                    entry2.getValue().doubleValue()));
+                            entry1.getValue().multiply(entry2.getValue()));
                     observer.updateMultiplicationOperations(1);
                 }
             }
@@ -206,7 +205,7 @@ public class Factor {
                 .filter(x -> !join_result.name.contains(x) &&
                         x.split("=").length == 1)
                 .collect(Collectors.toList()));
-//        System.out.println("Join Result: " + join_result);
+        System.out.println("Join Result: " + join_result);
         return join_result;
     }
 

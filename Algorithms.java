@@ -251,6 +251,9 @@ public class Algorithms implements operations_count_observer {
             factors_of_var.sort(new SIZE_ASCII_Comparator());
             f1 = factors_of_var.remove(0); // remove both factors
             f2 = factors_of_var.remove(0); // and join them into one
+            System.out.println("Pick \n" + f1);
+            System.out.println(f2);
+            System.out.println("--------------------------------------");
             join_result_factor = Factor.joinFactors(f1, f2); // keep the join result
             factors_of_var.add(join_result_factor); // add it to keep the loop
             result_factor_set.remove(f1); // remove from the resulting factor set

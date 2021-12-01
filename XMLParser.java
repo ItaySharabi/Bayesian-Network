@@ -145,8 +145,6 @@ public class XMLParser implements bn_xml_parser {
         }
 
 
-        int pi = 0; // current parent index
-        int p_outcome = 1;
         Variable parent;
 
         // If a variable has no parents he will skip the next section of code
@@ -166,17 +164,20 @@ public class XMLParser implements bn_xml_parser {
             return;
         }
 
+        int pi = 0; // current parent index
+        int p_outcome = 0;
+
         while (pi < parents.size()) { // Iterating over `parents` list (Reversed)
             parent = vars.get(parents.get(pi)); // apply next
 
             for (int i = 0; i < n;) { // Iterate over `rows` of the CPT
-                p_outcome = (p_outcome + 1) % parent.getOutcomes().size();
 
                 for (int j = 0; j < leap && leap < n; j++)
                     keys.get(i+j)
                             // Append to i'th row the term (String) "A=a1"
                             .add(parents.get(pi) + "=" + parent.getOutcomes().get(p_outcome));
 
+                p_outcome = (p_outcome + 1) % parent.getOutcomes().size();
                 i += leap;
             }
             leap *= parent.getOutcomes().size(); // for next parent we multiply the leap param with the support size
@@ -189,7 +190,7 @@ public class XMLParser implements bn_xml_parser {
         int i = 0;
         for (List<String> list : keys) // Append to Map:  <["A1=a1", ..., "Ek=ek"], p1>
             CPT.put(list,
-                    new BigDecimal(Double.parseDouble(probabilities[i++])));
+                    BigDecimal.valueOf(Double.parseDouble(probabilities[i++])));
 
         v.setCPT(CPT);
     }

@@ -1,4 +1,4 @@
-data/alarm_net.xml
+alarm_net.xml
 B-E|
 B-E|J=T
 P(B=T|J=T,M=T) A-E
