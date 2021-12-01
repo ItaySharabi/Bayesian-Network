@@ -3,17 +3,12 @@ import java.util.*;
 
 public class Algorithms implements operations_count_observer {
 
-    @Override
-    public void updateSumOperations(int operations) {
-        this.sumOperations += operations;
-    }
-    @Override
-    public void updateMultiplicationOperations(int operations) {
-        this.multOperations += operations;
-    }
-
+    /**
+     * A simple Comparator class that compares
+     * `Factor`s by the size of their table (Small to large).
+     * If table sizes are identical - compare by the ASCII sum of the `Factor`s name.
+     */
     private static class SIZE_ASCII_Comparator implements Comparator<Factor> {
-
         @Override
         public int compare(Factor o1, Factor o2) {
 
@@ -25,7 +20,6 @@ public class Algorithms implements operations_count_observer {
 
             return o1_table_size - o2_table_size;
         }
-
         private int compareByASCII(List<String> f1, List<String> f2) {
             int ascii_sum1 = 0,
                     ascii_sum2 = 0;
@@ -36,7 +30,6 @@ public class Algorithms implements operations_count_observer {
                 ascii_sum2 += sumASCII(s);
             return ascii_sum1 - ascii_sum2;
         }
-
         private int sumASCII(String s) {
             int sum = 0;
             for (char c : s.toCharArray())
@@ -61,11 +54,11 @@ public class Algorithms implements operations_count_observer {
     }
 
     /**
-     * This is an algorithm which answers probability queries over
-     * a Bayesian Network with n variables.
+     * `Variable Elimination` (Marginal) algorithm answers probability queries over
+     * a `Bayesian Network`.
      * The algorithm processes the query and prepares
      * `Factor` objects, which have the CPT (Conditional Probability Table)
-     * of and variable.
+     * of relevant variables.
      *
      * @param varEliminationQuery - A probability query. Format: P(X=x|Y1=y1,...Yk=yk) [Z1-...-Z(n-k-1)]
      * @return - The probability P(X=x|Evidence)
@@ -81,9 +74,9 @@ public class Algorithms implements operations_count_observer {
 
         String[] processed_query = null;
         try {
-            processed_query = processVarEliminationQuery(varEliminationQuery);
+            processed_query = processVarEliminationQuery(varEliminationQuery); // Query processing method
         } catch (Exception e) {
-//            System.out.println("***Variable Elimination***\nCould not process query");
+            System.out.println("Variable Elimination\nCould not process query");
             e.printStackTrace();
         }
         if (processed_query == null) return "-1";
@@ -101,7 +94,13 @@ public class Algorithms implements operations_count_observer {
         // Initialize factors using evidence:
         HashSet<Factor> factors = new HashSet<>();
 
-        // initialize factor of v with a list of all variables and their given outcomes.
+        /**
+         * initialize factor of v with a list of RELEVANT variables and their given outcomes.
+         * Relevant variables are hidden variables, which are:
+         * conditionally dependant with the query variable, given the evidence
+         * OR -- Hidden variables which are Ancestors of the query or evidence variables.
+         */
+
         List<String> relevantVars = new ArrayList<>();
         List<String> hidden_variables_cleared = new ArrayList<>();
 
@@ -112,6 +111,7 @@ public class Algorithms implements operations_count_observer {
                 relevantVars.add(ev);
         }
 
+        // Filtering Relevant Hidden Variables
         for (String h : hiddenVariables) {
             String bayesBallQuery = v.split("=")[0] + "-" + h + "|";
             for (String e : evidence) {
@@ -129,11 +129,12 @@ public class Algorithms implements operations_count_observer {
 //        System.out.println("Relevant query vars: " + relevantVars);
 
 //        System.out.println("Do I have the query: " + v + "|" + evidence + " ?");
+
+        // Check if the given query can be found in O(1) in our existing CPT tables.
         if (canAnswerImmediately(v, evidence)) {
-            System.out.println("Can return in O(1)");
+//            System.out.println("Can return in O(1)");
             return immediateAnswer(v, evidence);
         }
-
 
         // Set initial factors - only those who are relevant for the query (cond. independent)
         for (String V : relevantVars) /* NOT ITERATING OVER ALL VARIABLES - Only filtered ones! */
@@ -143,8 +144,10 @@ public class Algorithms implements operations_count_observer {
 
         // initialize a priority queue with a given priority over elimination order
 
+        // Start Elimination Procedure and save the resulting `Factor`
         Factor result = EliminationProcedure(factors, hidden_variables_cleared);
 
+        // "Normalize" the `Factor`.
         Factor query_result_factor = Factor.normalizeFactor(result, v.split("=")[0]);
 
         for (Map.Entry<List<String>, BigDecimal> entry : query_result_factor.getTable().entrySet())
@@ -154,7 +157,12 @@ public class Algorithms implements operations_count_observer {
         return "-1 (An error has occurred)";
     }
 
-
+    /**
+     * This method is looking for an immediate answer in local CPT`s.
+     * @param v - Query variable - "Q=q".
+     * @param evidence - Given evidence of the query - ["E1=e1",...,"Ek=ek"]
+     * @return -
+     */
     private String immediateAnswer(String v, List<String> evidence) {
         List<String> key = new ArrayList<>();
         key.add(v);
@@ -167,6 +175,7 @@ public class Algorithms implements operations_count_observer {
         return "-1";
     }
 
+    // This method will check if an immediate answer can be returned.
     private boolean canAnswerImmediately(String q_o, List<String> evidence) {
 
         List<String> key = new ArrayList<>();
@@ -177,6 +186,15 @@ public class Algorithms implements operations_count_observer {
 //        return true;
     }
 
+    /**
+     * This method checks recursively if `ancestorQ` is an "Ancestor"
+     * of any of the variables in `vars` list.
+     * @param ancestorQ - A variable name which will be checked for being an ancestor
+     * @param vars - A List<String> of `Variable` names which will be checked for being
+     *             descendants of `ancestorQ`.
+     * @return - True if `ancestorQ` is an Ancestor of ANY variables in `vars`.
+     *           Otherwise - False.
+     */
     private boolean isAncestor(String ancestorQ, List<String> vars) {
 
 //        System.out.println("isAncestor(" + ancestorQ + ", " + vars + ")");
@@ -189,12 +207,9 @@ public class Algorithms implements operations_count_observer {
         }
 
         for (String v : network.getNode(ancestorQ.split("=")[0]).getChildren()) {
-//            System.out.println("Check " + v + "`s children" + network.getNode(v).getChildren());
             if (vars.contains(v) || vars.contains(v.split("=")[0]))
                 return true;
             else if (isAncestor(v, vars)) {
-//                System.out.println("ancestorQ: " + ancestorQ);
-//                System.out.println("vars: " + vars);
                 return true;
             }
         }
@@ -204,6 +219,13 @@ public class Algorithms implements operations_count_observer {
     }
 
     /**
+     * This method runs the procedure of `Variable Elimination`.
+     * Procedure:
+     * 1. Iterate over hidden variables (Note that they were already filtered in main func. `VariableElimination`).
+     * 2. For (`Factor` Z : Hidden-Vars):
+     * 3.       Eliminate `Z`
+     *
+     * 4. Normalize the resulting `Factor` and return the wanted query row of its CPT table.
      * @param factors               - Set of all factors.
      * @param vars_to_be_eliminated - An order in which factors will be eliminated.
      *                              Elimination order will be Z1, Z2, ..., Zk.
@@ -232,6 +254,15 @@ public class Algorithms implements operations_count_observer {
         return result;
     }
 
+    /**
+     * This method Eliminates a Variable `Z`.
+     * Elimination of `Z`:
+     * 1. Iterate over all `Factor`s mentioning `Z` in their name.
+     * 2. Pick the 2 SMALLES `Factor`s each time and Join them
+     * @param var_to_eliminate - name of var to eliminate
+     * @param factors -
+     * @return - The set of all remaining factors with the new factors generated.
+     */
     private Set<Factor> Eliminate(Variable var_to_eliminate, Set<Factor> factors) {
         // How to Eliminate A?
         // - join all factors that A is a part of them.
@@ -301,24 +332,11 @@ public class Algorithms implements operations_count_observer {
         return new String[]{var, evidence, hiddenVariables};
     }
 
-    private String targetNotFoundText(String start, String target, List<String> evidence) {
-
-        String out = start + " and " + target + " are conditionally independent";
-
-        String evd = " given: ";
-        if (evidence.size() > 0) {
-            for (String v : evidence)
-                evd += v + " ";
-            out += evd;
-        }
-        return out;
-    }
-
     /**
      *
-     * @param bayesBallQuery - A qurey that can be processed by the algorithm
+     * @param bayesBallQuery - A query that can be processed by the algorithm
      *                       Format: X-Y|E1=e1,E2=e2,...
-     * @return
+     * @return - "yes" if the v1-v2 are conditionally independent given some evidence.
      */
     private HashMap<Variable, Boolean> cameFromChildList;
     private HashMap<Variable, Boolean> cameFromParentList;
@@ -365,7 +383,7 @@ public class Algorithms implements operations_count_observer {
         if (evidence.contains(start)) {
             // Observed (Evidence) nodes can only go to parents, if they came from a parent.
             if (direction == Direction.DOWN) {
-                // change direction
+                // Change direction - evidence variables can only go UP to parents
                 for (String p : start.getParents()) {
                     parent = network.getNode(p);
                     if (!cameFromChild(parent)) { // if parent was not set as `came from child` -> set it
@@ -390,7 +408,8 @@ public class Algorithms implements operations_count_observer {
                             return true;
                     }
                 }
-                cameFromChildList.put(prev, true);
+                cameFromChildList.put(prev, true); // evidence nodes which have no more children will
+                // to their parent(s) ---> Set their parent as `cameFromChild`.
 
             } else { // If node is in an upward direction
 
@@ -404,7 +423,7 @@ public class Algorithms implements operations_count_observer {
                             return true;
                     }
                 }
-
+                cameFromChildList.put(prev, true);
                 // Node is in an upward direction
                 // try reaching any children
                 for (String c : start.getChildren()) {
@@ -425,5 +444,14 @@ public class Algorithms implements operations_count_observer {
     }
     private boolean cameFromChild(Variable v) {
         return cameFromChildList.get(v);
+    }
+
+    @Override
+    public void updateSumOperations(int operations) {
+        this.sumOperations += operations;
+    }
+    @Override
+    public void updateMultiplicationOperations(int operations) {
+        this.multOperations += operations;
     }
 }

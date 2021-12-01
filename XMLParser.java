@@ -10,11 +10,25 @@ import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.*;
 
+/**
+ * `XMLParser` class will handle reading from an XML file
+ * and creating a collection of `Bayesian Network` Random Variables (Nodes).
+ * The collection will be passed over to a Bayesian Network which can load itself
+ * using a Collection<Variable>.
+ */
 public class XMLParser implements bn_xml_parser {
     private HashMap<String, Variable> vars;
 
     public XMLParser(){}
 
+    /**
+     * This method creates and returns a Collection<Variable>.
+     * The Variables are first being created by their Names and Outcomes,
+     * and then adding their Children, then Parents and then CPT (Conditional Probability Table).
+     *
+     * @param xmlFilePath - A path to an XML file containing a Bayesian Network representation.
+     * @return - A Collection of `Variable`s.
+     */
     @Override
     public Collection<Variable> parseNodesFromXML(String xmlFilePath) {
         try {
@@ -34,10 +48,8 @@ public class XMLParser implements bn_xml_parser {
             vars = new HashMap<>();
 
             String c;
-//            DummyVar dummyVar;
 
             for (int n = 0; n < variables.getLength(); n++) {
-//                dummyVar = new DummyVar();
                 Node nNode = variables.item(n);
 
                 // Get variable's name
@@ -51,8 +63,6 @@ public class XMLParser implements bn_xml_parser {
                     outcomes += outTags.item(i).getTextContent() + " ";
 
                 // Save name and outcomes as a new variable. More data will be added to each var, i.e. Probability table
-//                dummyVar.name = name;
-//                dummyVar.outcomes = outcomes;
                 vars.put(name, new Variable(name, outcomes.split(" ")));
 
                 // Get variable's children from all tags which are not not meant for current node
@@ -158,7 +168,6 @@ public class XMLParser implements bn_xml_parser {
                 key.add(v.getName() + "=" + outcome);
                 CPT.put(key,
                         BigDecimal.valueOf(Double.parseDouble(probabilities[i++])));
-//                        Double.parseDouble(probabilities[i++]));
             }
             v.setCPT(CPT);
             return;

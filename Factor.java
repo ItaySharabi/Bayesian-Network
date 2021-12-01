@@ -111,7 +111,7 @@ public class Factor {
         for (String k : key)
             sum_result_factor.name.add(k.split("=")[0]);
 
-        System.out.println("sum_result_factor: " + sum_result_factor);
+//        System.out.println("sum_result_factor: " + sum_result_factor);
         return sum_result_factor;
     }
 
@@ -134,7 +134,7 @@ public class Factor {
             normalized_factor.getTable().put(entry.getKey(),
                     entry.getValue().divide(sum, 6, RoundingMode.FLOOR));
         }
-        System.out.println("Normalized: " + normalized_factor);
+//        System.out.println("Normalized: " + normalized_factor);
         return normalized_factor;
     }
 
@@ -205,7 +205,7 @@ public class Factor {
                 .filter(x -> !join_result.name.contains(x) &&
                         x.split("=").length == 1)
                 .collect(Collectors.toList()));
-        System.out.println("Join Result: " + join_result);
+//        System.out.println("Join Result: " + join_result);
         return join_result;
     }
 
