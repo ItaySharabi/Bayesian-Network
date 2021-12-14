@@ -13,12 +13,12 @@ public class Factor {
     private Factor(operations_count_observer ob){
         this.table = new HashMap<>();
         this.name = new ArrayList<>();
-        this.observer = ob;
+        observer = ob;
     }
 
-    public Factor(Variable v, List<String> givenOutcomes, operations_count_observer observer) {
+    public Factor(Variable v, List<String> givenOutcomes, operations_count_observer ob) {
 
-        this.observer = observer;
+        observer = ob;
 
         List<String> givenVariablesNames = new ArrayList<>();
         for (String ev : givenOutcomes)
