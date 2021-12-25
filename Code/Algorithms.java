@@ -171,7 +171,7 @@ public class Algorithms implements operations_count_observer {
         List<String> key = new ArrayList<>();
         key.add(v);
         key.addAll(evidence);
-        System.out.println("Looking for row: " + key);
+//        System.out.println("Looking for row: " + key);
         for (Map.Entry<List<String>, BigDecimal> entry : network.getNode(v.split("=")[0])
                 .getCPT().entrySet())
             if (entry.getKey().containsAll(key))

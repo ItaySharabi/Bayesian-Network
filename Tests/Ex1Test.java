@@ -1,36 +1,38 @@
-package Code;
+package Tests;
+
+import Code.Algorithms;
+import Code.BayesianNetwork;
+import Code.Input;
+import Code.XMLParser;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileWriter;
 
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Artificial Intelligence Assignment:
- * @author Itay Sharabi
- * This is an implementation of a `Bayesian Network` (Graph) model.
- * A Bayesian Network is a graphical representation of a set of
- * `Random Variable`s (Probability Theory) which are the graph's nodes
- * and the conditional relation between them as the graph's edges.
- * This model can answer queries such as:
- * 1. What is the probability of `Q` happening, given the evidence: E1, E2, ..., Ek ?
- * This query is notated: P(Q|E1,E2,...,Ek)
- *
- * 2. What is the conditional relation between A and B, given E1, E2, ..., Ek ?
- * This query is notated: A-B|E1,E2,...,Ek
- */
+class Ex1Test {
 
-public class Ex1 {
+    String[] files = {"Data/input.txt", "Data/input2.txt", "Data/my_input.txt"};
+    int fileNum = 0;
 
-    public static void main(String[] args) {
+    @Test
+    void testInputs() {
+        run(files[fileNum++]);
+        run(files[fileNum++]);
+        run(files[fileNum++]);
+    }
 
+
+    void run(String inputFile) {
         BayesianNetwork bn = new BayesianNetwork();
 
-        /* Code.Input object will parse data from a file name input.txt */
         Input input = null;
+        /* Code.Input object will parse data from a file name input.txt */
         try {
-            input = new Input("Data/input.txt");
+            input = new Input(inputFile);
             bn.loadNetworkFromXML(new XMLParser(), input.getXMLFilePath());
-
+            assertNotNull(input);
             Algorithms algo = new Algorithms(bn);
 
             StringBuilder out = new StringBuilder();
@@ -43,13 +45,12 @@ public class Ex1 {
                     out.append(algo.BayesBall(query) + "\n");
             }
 
-            FileWriter fw = new FileWriter(new File("Data/output.txt"));
+            FileWriter fw = new FileWriter(new File("Data/output" + fileNum + ".txt"));
             fw.write(out.toString().stripTrailing());
             fw.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private static boolean isVariableEliminationQuery(String query) {
