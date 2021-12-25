@@ -1,3 +1,7 @@
+package Code;
+
+import Code.API.bn_xml_parser;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -71,16 +75,16 @@ public class BayesianNetwork {
         return false;
     }
 }
-//    public List<Variable> getParents(String name) {
+//    public List<Code.Variable> getParents(String name) {
 //        if (!nodes.containsKey(name)) return new ArrayList<>();
-//        List<Variable> parents = new ArrayList<>();
+//        List<Code.Variable> parents = new ArrayList<>();
 //        for (String s : nodes.get(name).getParents())
 //            parents.add(nodes.get(s));
 //        return parents;
 //    }
-//    public Collection<Variable> getChildren(String name) {
+//    public Collection<Code.Variable> getChildren(String name) {
 //        if (!nodes.containsKey(name)) return new ArrayList<>();
-//        List<Variable> children = new ArrayList<>();
+//        List<Code.Variable> children = new ArrayList<>();
 //        for (String s : nodes.get(name).getChildren())
 //            children.add(nodes.get(s));
 //        return children;

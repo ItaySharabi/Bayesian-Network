@@ -1,3 +1,6 @@
+package Code;
+
+import Code.API.bn_xml_parser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -11,10 +14,10 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * `XMLParser` class will handle reading from an XML file
+ * `Code.XMLParser` class will handle reading from an XML file
  * and creating a collection of `Bayesian Network` Random Variables (Nodes).
  * The collection will be passed over to a Bayesian Network which can load itself
- * using a Collection<Variable>.
+ * using a Collection<Code.Variable>.
  */
 public class XMLParser implements bn_xml_parser {
     private HashMap<String, Variable> vars;
@@ -22,12 +25,12 @@ public class XMLParser implements bn_xml_parser {
     public XMLParser(){}
 
     /**
-     * This method creates and returns a Collection<Variable>.
+     * This method creates and returns a Collection<Code.Variable>.
      * The Variables are first being created by their Names and Outcomes,
      * and then adding their Children, then Parents and then CPT (Conditional Probability Table).
      *
      * @param xmlFilePath - A path to an XML file containing a Bayesian Network representation.
-     * @return - A Collection of `Variable`s.
+     * @return - A Collection of `Code.Variable`s.
      */
     @Override
     public Collection<Variable> parseNodesFromXML(String xmlFilePath) {
@@ -193,7 +196,7 @@ public class XMLParser implements bn_xml_parser {
             // of the parent
             pi++; // next parent
         }
-        // Create the Map object representing Variable `v` CPT.
+        // Create the Map object representing Code.Variable `v` CPT.
         CPT = new HashMap<>();
 
         int i = 0;

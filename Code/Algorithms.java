@@ -1,3 +1,7 @@
+package Code;
+
+import Code.API.operations_count_observer;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -5,8 +9,8 @@ public class Algorithms implements operations_count_observer {
 
     /**
      * A simple Comparator class that compares
-     * `Factor`s by the size of their table (Small to large).
-     * If table sizes are identical - compare by the ASCII sum of the `Factor`s name.
+     * `Code.Factor`s by the size of their table (Small to large).
+     * If table sizes are identical - compare by the ASCII sum of the `Code.Factor`s name.
      */
     private static class SIZE_ASCII_Comparator implements Comparator<Factor> {
         @Override
@@ -54,17 +58,17 @@ public class Algorithms implements operations_count_observer {
     }
 
     /**
-     * `Variable Elimination` (Marginal) algorithm answers probability queries over
+     * `Code.Variable Elimination` (Marginal) algorithm answers probability queries over
      * a `Bayesian Network`.
      * The algorithm processes the query and prepares
-     * `Factor` objects, which have the CPT (Conditional Probability Table)
+     * `Code.Factor` objects, which have the CPT (Conditional Probability Table)
      * of relevant variables.
      *
      * @param varEliminationQuery - A probability query. Format: P(X=x|Y1=y1,...Yk=yk) [Z1-...-Z(n-k-1)]
      * @return - The probability P(X=x|Evidence)
      */
     public String VariableEliminationMarginal(String varEliminationQuery) {
-//        System.out.println("---- Variable Elimination ----");
+//        System.out.println("---- Code.Variable Elimination ----");
 //        System.out.println(varEliminationQuery);
         sumOperations = 0;
         multOperations = 0;
@@ -76,7 +80,7 @@ public class Algorithms implements operations_count_observer {
         try {
             processed_query = processVarEliminationQuery(varEliminationQuery); // Query processing method
         } catch (Exception e) {
-            System.out.println("Variable Elimination\nCould not process query");
+            System.out.println("Code.Variable Elimination\nCould not process query");
             e.printStackTrace();
         }
         if (processed_query == null) return "-1";
@@ -136,7 +140,7 @@ public class Algorithms implements operations_count_observer {
             return immediateAnswer(v, evidence);
         }
 
-        // Set initial factors - only those who are relevant for the query (cond. independent)
+        // Set initial factors - only those who are relevant for the query (cond. independent from query, given the evidence)
         for (String V : relevantVars) /* NOT ITERATING OVER ALL VARIABLES - Only filtered ones! */
             factors.add(new Factor(
                     network.getNode(V.split("=")[0]),
@@ -144,10 +148,10 @@ public class Algorithms implements operations_count_observer {
 
         // initialize a priority queue with a given priority over elimination order
 
-        // Start Elimination Procedure and save the resulting `Factor`
+        // Start Elimination Procedure and save the resulting `Code.Factor`
         Factor result = EliminationProcedure(factors, hidden_variables_cleared);
 
-        // "Normalize" the `Factor`.
+        // "Normalize" the `Code.Factor`.
         Factor query_result_factor = Factor.normalizeFactor(result, v.split("=")[0]);
 
         for (Map.Entry<List<String>, BigDecimal> entry : query_result_factor.getTable().entrySet())
@@ -190,7 +194,7 @@ public class Algorithms implements operations_count_observer {
      * This method checks recursively if `ancestorQ` is an "Ancestor"
      * of any of the variables in `vars` list.
      * @param ancestorQ - A variable name which will be checked for being an ancestor
-     * @param vars - A List<String> of `Variable` names which will be checked for being
+     * @param vars - A List<String> of `Code.Variable` names which will be checked for being
      *             descendants of `ancestorQ`.
      * @return - True if `ancestorQ` is an Ancestor of ANY variables in `vars`.
      *           Otherwise - False.
@@ -219,13 +223,13 @@ public class Algorithms implements operations_count_observer {
     }
 
     /**
-     * This method runs the procedure of `Variable Elimination`.
+     * This method runs the procedure of `Code.Variable Elimination`.
      * Procedure:
      * 1. Iterate over hidden variables (Note that they were already filtered in main func. `VariableElimination`).
-     * 2. For (`Factor` Z : Hidden-Vars):
+     * 2. For (`Code.Factor` Z : Hidden-Vars):
      * 3.       Eliminate `Z`
      *
-     * 4. Normalize the resulting `Factor` and return the wanted query row of its CPT table.
+     * 4. Normalize the resulting `Code.Factor` and return the wanted query row of its CPT table.
      * @param factors               - Set of all factors.
      * @param vars_to_be_eliminated - An order in which factors will be eliminated.
      *                              Elimination order will be Z1, Z2, ..., Zk.
@@ -255,10 +259,10 @@ public class Algorithms implements operations_count_observer {
     }
 
     /**
-     * This method Eliminates a Variable `Z`.
+     * This method Eliminates a Code.Variable `Z`.
      * Elimination of `Z`:
-     * 1. Iterate over all `Factor`s mentioning `Z` in their name.
-     * 2. Pick the 2 SMALLES `Factor`s each time and Join them
+     * 1. Iterate over all `Code.Factor`s mentioning `Z` in their name.
+     * 2. Pick the 2 SMALLES `Code.Factor`s each time and Join them
      * @param var_to_eliminate - name of var to eliminate
      * @param factors -
      * @return - The set of all remaining factors with the new factors generated.

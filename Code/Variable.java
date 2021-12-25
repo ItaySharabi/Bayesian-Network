@@ -1,3 +1,5 @@
+package Code;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -55,7 +57,7 @@ public class Variable implements Comparable<Variable>{
     }
 
     /**
-     * This setter receives a Map object which contains this Variable's Conditional Probability Table.
+     * This setter receives a Map object which contains this Code.Variable's Conditional Probability Table.
      * Example:
      *  111  011  110  010  101  001  100   000
      * [0.95 0.05 0.29 0.71 0.94 0.06 0.001 0.999]
@@ -89,7 +91,7 @@ public class Variable implements Comparable<Variable>{
 
     @Override
     public String toString() {
-        return "Variable{" +
+        return "Code.Variable{" +
                 "name='" + name + '\'' +
                 ", outcomes=" + outcomes +
 //                ", parents=" + parents +

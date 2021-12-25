@@ -1,3 +1,7 @@
+package Code.API;
+
+import Code.Variable;
+
 import java.util.Collection;
 
 public interface bn_xml_parser {

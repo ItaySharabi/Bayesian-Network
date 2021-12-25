@@ -1,3 +1,5 @@
+package Code;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -6,9 +8,9 @@ import java.util.Scanner;
 
 
 /**
- * `Input` class will handle parsing the input.txt file
+ * `Code.Input` class will handle parsing the input.txt file
  * given to read and load Bayesian Network object from an XML file.
- * This class will also parse the `Bayesian Algorithms` queries from the input.txt file.
+ * This class will also parse the `Bayesian Code.Algorithms` queries from the input.txt file.
  */
 public class Input {
 

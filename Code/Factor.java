@@ -1,12 +1,15 @@
+package Code;
+
+import Code.API.operations_count_observer;
+
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class Factor {
-    private List<String> name; // Factor name represents all variable names that are independent from the sum
+    private List<String> name; // Code.Factor name represents all variable names that are independent from the sum
     private HashMap<List<String>, BigDecimal> table;
     private static operations_count_observer observer;
 
@@ -171,7 +174,7 @@ public class Factor {
                             .filter(x -> varsToJoinOver.contains(x.split("=")[0]))
                             .collect(Collectors.toList())); // all intersecting variables
 
-                    // TODO: Check this if getting errors on COMPLEX JOINS
+                    // TODO: Check this section if getting errors on COMPLEX JOINS
                     joint_entries.addAll(entry1.getKey().stream() // get all non-intersecting variables
                             .filter(x -> f1.name.contains(x.split("=")[0]) &&
                                     !varsToJoinOver.contains(x.split("=")[0]))
